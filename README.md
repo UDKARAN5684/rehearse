@@ -4,6 +4,8 @@
 
 Rehearse is a small Next.js 14 app for getting reps on the hard stuff before it counts. It has two modes. **Conversation Simulator** lets you pick a tough scenario — asking for a raise, giving hard feedback, breaking up a partnership — and an AI role-plays the other person realistically while you practice; when you're done you get a graded, screenshot-worthy **Report** on what worked, what hurt you (with better lines to try instead), and the one thing to change next time. **Pre-Mortem** takes a big decision you're weighing and runs an imagined "fast-forward two years, this failed spectacularly, why?" interview one dimension at a time, then hands you a **risk map** — the story of the failure, ranked risks, and concrete inoculations for each.
 
+**It gets to know your real people.** In the Conversation Simulator you can save someone from your actual life — your manager, your mom, your co-founder — and attach them to a scenario. The AI then role-plays *that person* using what you've told it, and after each session it distills what it learned and folds it back into their profile. The more you rehearse someone, the more the simulation feels like them. (Everything is stored locally in your browser.)
+
 ---
 
 ## Quickstart
@@ -46,6 +48,7 @@ Rehearse routes each call to the cheapest model that's good enough for the job. 
 | Pre-mortem interview turns (`premortem`) | **Haiku 4.5** | Same — one question at a time, low latency matters | Many per session |
 | Post-game Report (`analysis`) | **Sonnet 5** (`claude-sonnet-5`) | Grading a whole transcript into structured, honest, quotable feedback needs the stronger model | Once per session |
 | Risk map (`premortemReport`) | **Sonnet 5** | Synthesizing the interview into a ranked risk map is the payoff — worth the spend | Once per session |
+| Memory extraction (`/api/remember`) | **Sonnet 5** (reuses `analysis`) | Distilling durable, non-duplicate notes about a real person from a transcript rewards the stronger model | Once per session, optional |
 
 **The rationale in one line:** the many cheap turns run on Haiku; the one expensive, high-value synthesis per session runs on Sonnet. Chat is where volume lives, so it gets the low per-token cost (Haiku ≈ \$1 / \$5 per M input/output); the report is where quality lives, so it gets Sonnet (≈ \$3 / \$15 per M) exactly once.
 
@@ -59,15 +62,18 @@ Rehearse routes each call to the cheapest model that's good enough for the job. 
 rehearse/
 ├── app/
 │   ├── api/
-│   │   ├── roleplay/route.ts      # POST { scenario, messages } -> { reply }   (Haiku)
-│   │   ├── analyze/route.ts       # POST { scenario, messages } -> { report }  (Sonnet)
-│   │   └── premortem/route.ts     # POST { messages, action, decision? } -> reply | report
+│   │   ├── roleplay/route.ts      # POST { scenario, messages, person? } -> { reply }  (Haiku)
+│   │   ├── analyze/route.ts       # POST { scenario, messages } -> { report }   (Sonnet)
+│   │   ├── premortem/route.ts     # POST { messages, action, decision? } -> reply | report
+│   │   └── remember/route.ts      # POST { person, messages } -> { notes }      (Sonnet)
 │   ├── globals.css
 │   ├── layout.tsx                 # <html>/<body> shell, metadata
-│   └── page.tsx                   # "use client" — full state machine (home/chat/report)
+│   └── page.tsx                   # "use client" — full state machine (home/chat/report/people)
 ├── components/
 │   ├── ModeTabs.tsx               # Conversation | Pre-Mortem toggle
 │   ├── ScenarioPicker.tsx         # scenario cards
+│   ├── PersonSelect.tsx           # attach a saved real person to a conversation
+│   ├── PeopleManager.tsx          # add / edit / delete your people + read their memory
 │   ├── MessageBubble.tsx
 │   ├── ChatWindow.tsx             # scrollable, auto-scroll, typing indicator
 │   ├── Composer.tsx               # textarea, Enter sends / Shift+Enter newline
@@ -75,11 +81,12 @@ rehearse/
 │   ├── PremortemReportCard.tsx    # risk map
 │   └── UsageBadge.tsx             # used / limit
 ├── lib/
-│   ├── types.ts                   # shared TS types (Scenario, Report, Session, …)
+│   ├── types.ts                   # shared TS types (Scenario, Report, Session, Person, …)
 │   ├── claude.ts                  # MODELS + complete() / completeJson() helpers
 │   ├── prompts.ts                 # system prompts + transcript rendering
 │   ├── scenarios.ts               # built-in scenario catalog
 │   ├── store.ts                   # localStorage session persistence
+│   ├── people.ts                  # localStorage people + memory (appendNotes)
 │   └── usage.ts                   # free daily cap
 ├── .env.example                   # ANTHROPIC_API_KEY template
 ├── next.config.mjs
@@ -95,7 +102,7 @@ rehearse/
 
 ## Roadmap
 
-- **Accounts + memory of your real people.** Sign in, then rehearse against personas that remember your actual manager, co-founder, or partner across sessions — so practice compounds instead of resetting each time.
+- **Accounts + sync.** Memory of your real people already works locally — attach a person and the app learns them over time (see above). Next is signing in so those people and your session history sync across devices instead of living in a single browser.
 - **Paywall on the analysis.** Keep unlimited-ish role-play cheap; put the high-value graded Report and risk map behind a paid tier (the free daily cap is already the seam for this).
 - **Custom scenarios.** Let users describe their own situation and persona in a sentence and drop straight into a tailored role-play, beyond the built-in catalog.
 - **Voice.** Speak your side and hear the other person talk back — the closest thing to the real, nervous-making moment.
