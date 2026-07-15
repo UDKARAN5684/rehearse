@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* Thin, unobtrusive scrollbars for the chat area */
+.scrollbar-slim::-webkit-scrollbar {
+  width: 8px;
+}
+.scrollbar-slim::-webkit-scrollbar-thumb {
+  background-color: rgba(120, 120, 120, 0.35);
+  border-radius: 9999px;
+}
