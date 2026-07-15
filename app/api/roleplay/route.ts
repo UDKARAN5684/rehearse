@@ -61,11 +61,29 @@ export async function POST(req: Request): Promise<Response> {
   }
 
   try {
-    const system = roleplaySystem(scenario, isPerson(person) ? person : undefined);
+    // The Anthropic Messages API requires the first message to be a user turn.
+    // The scenario's opening line is seeded client-side as the first assistant
+    // message, so fold any leading assistant turn(s) into the system prompt and
+    // drop them from the array we send.
+    const opening: string[] = [];
+    let convo = messages;
+    while (convo.length > 0 && convo[0].role === "assistant") {
+      opening.push(convo[0].content);
+      convo = convo.slice(1);
+    }
+    if (convo.length === 0) {
+      return Response.json({ error: "Nothing to reply to yet." }, { status: 400 });
+    }
+
+    let system = roleplaySystem(scenario, isPerson(person) ? person : undefined);
+    if (opening.length > 0) {
+      system += `\n\nYou have already opened this conversation by saying: "${opening.join(" ")}" — continue naturally from there and do not repeat your opening.`;
+    }
+
     const reply = await complete({
       model: MODELS.roleplay,
       system,
-      messages: messages.map((m) => ({ role: m.role, content: m.content })),
+      messages: convo.map((m) => ({ role: m.role, content: m.content })),
       maxTokens: 400,
     });
     return Response.json({ reply });
