@@ -59,10 +59,23 @@ export interface PremortemReport {
 
 export type Mode = "conversation" | "premortem";
 
+// A real person in the user's life. Attaching one to a conversation makes the
+// AI role-play *them* using `notes`, which grows over time as the app extracts
+// durable observations after each session. This is the compounding moat.
+export interface Person {
+  id: string;
+  name: string; // "Dana"
+  relationship: string; // "your manager", "your mom"
+  notes: string; // freeform memory of who they are; appended to over time
+  createdAt: number;
+  updatedAt: number;
+}
+
 export interface Session {
   id: string;
   mode: Mode;
   scenarioId?: string;
+  personId?: string; // the real person this conversation was played as, if any
   decision?: string; // for premortem sessions
   messages: ChatMessage[];
   report?: Report;
