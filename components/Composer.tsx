@@ -22,6 +22,12 @@ export default function Composer({
     el.style.height = `${Math.min(el.scrollHeight, 160)}px`;
   }, [text]);
 
+  // Focus on mount (entering the chat) and whenever the input becomes enabled
+  // again after a reply, so the user can keep typing without re-clicking.
+  useEffect(() => {
+    if (!disabled) taRef.current?.focus();
+  }, [disabled]);
+
   const submit = () => {
     const trimmed = text.trim();
     if (!trimmed || disabled) return;

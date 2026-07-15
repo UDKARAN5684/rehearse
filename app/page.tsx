@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type {
   ChatMessage,
   Mode,
@@ -11,7 +11,13 @@ import type {
   Session,
 } from "@/lib/types";
 import { SCENARIOS } from "@/lib/scenarios";
-import { newId, saveSession } from "@/lib/store";
+import {
+  deleteSession,
+  getSession,
+  listSessions,
+  newId,
+  saveSession,
+} from "@/lib/store";
 import {
   appendNotes,
   deletePerson,
@@ -68,6 +74,11 @@ async function postJson<T>(url: string, body: unknown): Promise<T> {
   return data as T;
 }
 
+/** Finished sessions (a graded report or risk map), newest first. */
+function finishedSessions(): Session[] {
+  return listSessions().filter((s) => s.report || s.premortemReport);
+}
+
 export default function Page() {
   const [view, setView] = useState<View>("home");
   const [mode, setMode] = useState<Mode>("conversation");
@@ -82,12 +93,22 @@ export default function Page() {
   const [remembering, setRemembering] = useState(false);
   const [rememberedNotes, setRememberedNotes] = useState<string[] | null>(null);
   const [rememberError, setRememberError] = useState<string | null>(null);
+  const [confirmingLeave, setConfirmingLeave] = useState(false);
+  const [recent, setRecent] = useState<Session[]>([]);
 
-  // Read usage + saved people on mount only (localStorage is unavailable during
-  // SSR/render, so these must not run during the render pass).
+  // Mirror the current session in a ref so async handlers can tell, after an
+  // await, whether the user has since navigated away / switched sessions.
+  const sessionRef = useRef<Session | null>(null);
+  useEffect(() => {
+    sessionRef.current = session;
+  }, [session]);
+
+  // Read usage + saved people + finished sessions on mount only (localStorage is
+  // unavailable during SSR/render, so these must not run during the render pass).
   useEffect(() => {
     setUsed(getUsage().sessionsStarted);
     setPeople(listPeople());
+    setRecent(finishedSessions());
   }, []);
 
   const busy = awaitingReply || finishing;
@@ -122,8 +143,34 @@ export default function Page() {
     setRemembering(false);
     setRememberedNotes(null);
     setRememberError(null);
+    setConfirmingLeave(false);
     setUsed(getUsage().sessionsStarted);
     setPeople(listPeople());
+    setRecent(finishedSessions());
+  }
+
+  // Leaving an in-progress chat throws away ungraded work, so confirm first.
+  function requestLeave() {
+    if (view === "chat" && hasUserTurn && !finishing) setConfirmingLeave(true);
+    else goHome();
+  }
+
+  // Re-open a previously finished session's report from history.
+  function openSession(id: string) {
+    const s = getSession(id);
+    if (!s) return;
+    setError(null);
+    setSession(s);
+    // Historical reports don't re-run memory extraction; show a neutral panel.
+    setRemembering(false);
+    setRememberedNotes([]);
+    setRememberError(null);
+    setView("report");
+  }
+
+  function removeSession(id: string) {
+    deleteSession(id);
+    setRecent(finishedSessions());
   }
 
   // ---- Conversation flow ---------------------------------------------------
@@ -258,11 +305,20 @@ export default function Page() {
         ...withUser,
         messages: [...withUser.messages, aMsg],
       };
+      if (sessionRef.current?.id !== withUser.id) return; // user navigated away
       setSession(withReply);
       saveSession(withReply);
     } catch (e) {
+      // Roll the optimistic user turn back out so a failed send doesn't leave a
+      // dangling user message (which would also double up on the next attempt).
+      if (sessionRef.current?.id === withUser.id) {
+        setSession(session);
+        saveSession(session);
+      }
       setError(
-        e instanceof Error ? e.message : "Something went wrong. Try again.",
+        e instanceof Error
+          ? e.message
+          : "Something went wrong — your message wasn't sent. Try again.",
       );
     } finally {
       setAwaitingReply(false);
@@ -290,12 +346,12 @@ export default function Page() {
           report: data.report,
           endedAt: Date.now(),
         };
+        saveSession(ended); // persist the paid-for result even if they left
+        if (sessionRef.current?.id !== session.id) return; // navigated away
         setSession(ended);
-        saveSession(ended);
         setView("report");
         // Close the compounding loop automatically: learn about the real person.
         if (ended.personId) void handleRemember(ended);
-        return;
       } else {
         const data = await postJson<{ report: PremortemReport }>(
           "/api/premortem",
@@ -310,10 +366,11 @@ export default function Page() {
           premortemReport: data.report,
           endedAt: Date.now(),
         };
-        setSession(ended);
         saveSession(ended);
+        if (sessionRef.current?.id !== session.id) return; // navigated away
+        setSession(ended);
+        setView("report");
       }
-      setView("report");
     } catch (e) {
       setError(
         e instanceof Error
@@ -371,7 +428,7 @@ export default function Page() {
     <main className="mx-auto flex min-h-[100dvh] w-full max-w-2xl flex-col px-4">
       <header className="flex items-center justify-between border-b border-neutral-200/70 py-4 dark:border-neutral-800/70">
         <button
-          onClick={goHome}
+          onClick={requestLeave}
           className="flex items-center gap-2 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 rounded-lg"
           aria-label="Rehearse home"
         >
@@ -388,7 +445,7 @@ export default function Page() {
           </span>
         </button>
         {view !== "home" && (
-          <button onClick={goHome} className={GHOST_BTN}>
+          <button onClick={requestLeave} className={GHOST_BTN}>
             {view === "report" ? "New session" : "Exit"}
           </button>
         )}
@@ -495,6 +552,12 @@ export default function Page() {
               </div>
             </section>
           )}
+
+          <RecentSessions
+            sessions={recent}
+            onOpen={openSession}
+            onDelete={removeSession}
+          />
         </div>
       )}
 
@@ -577,7 +640,7 @@ export default function Page() {
                   }
                 />
                 <div className="flex items-center justify-between gap-3">
-                  <span className="text-xs text-neutral-400 dark:text-neutral-500">
+                  <span className="text-xs text-neutral-500 dark:text-neutral-400">
                     {session.mode === "conversation"
                       ? "Talk like you would in real life."
                       : "The failures you name become your risk map."}
@@ -612,7 +675,7 @@ export default function Page() {
                   loading={remembering}
                   notes={rememberedNotes}
                   error={rememberError}
-                  onRemember={handleRemember}
+                  onRemember={() => handleRemember()}
                 />
               )}
             </div>
@@ -650,7 +713,117 @@ export default function Page() {
           onBack={() => setView("home")}
         />
       )}
+
+      {confirmingLeave && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Leave this rehearsal?"
+        >
+          <div className="w-full max-w-sm rounded-2xl border border-neutral-200 bg-white p-5 shadow-xl dark:border-neutral-800 dark:bg-neutral-900">
+            <h2 className="text-base font-semibold text-neutral-900 dark:text-neutral-100">
+              Leave this rehearsal?
+            </h2>
+            <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+              You haven&apos;t ended it, so it won&apos;t be graded — and an
+              unfinished rehearsal can&apos;t be resumed.
+            </p>
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                onClick={() => setConfirmingLeave(false)}
+                className={SECONDARY_BTN}
+              >
+                Stay
+              </button>
+              <button
+                onClick={() => {
+                  setConfirmingLeave(false);
+                  goHome();
+                }}
+                className={PRIMARY_BTN}
+              >
+                Leave
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
+  );
+}
+
+function RecentSessions({
+  sessions,
+  onOpen,
+  onDelete,
+}: {
+  sessions: Session[];
+  onOpen: (id: string) => void;
+  onDelete: (id: string) => void;
+}) {
+  if (sessions.length === 0) return null;
+  return (
+    <section className="flex flex-col gap-3 border-t border-neutral-200/70 pt-6 dark:border-neutral-800/70">
+      <h2 className="text-sm font-medium text-neutral-600 dark:text-neutral-300">
+        Recent sessions
+      </h2>
+      <ul className="flex flex-col gap-2">
+        {sessions.slice(0, 6).map((s) => {
+          const conv = s.mode === "conversation";
+          const sc = conv
+            ? SCENARIOS.find((x) => x.id === s.scenarioId)
+            : undefined;
+          const title = conv ? sc?.title ?? "Conversation" : "Pre-mortem";
+          const emoji = conv ? sc?.emoji ?? "🎭" : "🔮";
+          const subtitle = conv ? undefined : s.decision;
+          const badge = conv
+            ? s.report
+              ? `${Math.round(s.report.overallScore)}/100`
+              : null
+            : s.premortemReport
+              ? `${s.premortemReport.overallRisk} risk`
+              : null;
+          return (
+            <li
+              key={s.id}
+              className="flex items-center gap-2 rounded-xl border border-neutral-200 bg-white p-3 dark:border-neutral-800 dark:bg-neutral-900"
+            >
+              <button
+                onClick={() => onOpen(s.id)}
+                className="flex min-w-0 flex-1 items-center gap-3 rounded-lg text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+              >
+                <span className="text-xl" aria-hidden>
+                  {emoji}
+                </span>
+                <span className="min-w-0">
+                  <span className="block truncate text-sm font-medium">
+                    {title}
+                  </span>
+                  {subtitle && (
+                    <span className="block truncate text-xs text-neutral-500 dark:text-neutral-400">
+                      {subtitle}
+                    </span>
+                  )}
+                </span>
+              </button>
+              {badge && (
+                <span className="shrink-0 rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium capitalize text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300">
+                  {badge}
+                </span>
+              )}
+              <button
+                onClick={() => onDelete(s.id)}
+                aria-label={`Delete ${title} session`}
+                className="shrink-0 rounded-lg px-2 py-1 text-sm text-neutral-400 transition hover:bg-red-50 hover:text-red-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400 dark:hover:bg-red-950/40 dark:hover:text-red-400"
+              >
+                ✕
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
   );
 }
 

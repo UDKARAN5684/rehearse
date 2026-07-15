@@ -33,7 +33,6 @@ export default function ScenarioPicker({
           type="button"
           disabled={disabled}
           onClick={() => onPick(s)}
-          aria-label={`Start rehearsal: ${s.title}`}
           className="group flex flex-col rounded-2xl border border-neutral-200 bg-white p-5 text-left transition-all hover:border-indigo-300 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-neutral-200 disabled:hover:shadow-none dark:border-neutral-800 dark:bg-neutral-900 dark:hover:border-indigo-500/60 dark:disabled:hover:border-neutral-800"
         >
           <div className="flex items-start justify-between gap-3">

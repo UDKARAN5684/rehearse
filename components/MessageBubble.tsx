@@ -38,7 +38,7 @@ export default function MessageBubble({
       >
         {message.content}
       </div>
-      <span className="mt-1 h-3 px-1 text-[10px] text-neutral-400 dark:text-neutral-500">
+      <span className="mt-1 h-4 px-1 text-[11px] text-neutral-500 dark:text-neutral-400">
         {time}
       </span>
     </div>
