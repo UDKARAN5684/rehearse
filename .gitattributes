@@ -1,0 +1,14 @@
+# Normalize line endings to LF in the repository on every platform.
+# Working copies still check out with the platform default; only the
+# stored blobs are normalized, which silences the CRLF warnings on Windows.
+* text=auto eol=lf
+
+# Treat these as binary so Git never tries to normalize or diff them.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.woff binary
+*.woff2 binary
