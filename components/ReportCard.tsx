@@ -76,6 +76,13 @@ export default function ReportCard({
   onRestart: () => void;
 }) {
   const theme = scoreTheme(Math.round(report.overallScore));
+  // completeJson only JSON.parses model output; default arrays so a missing or
+  // malformed field can't crash render.
+  const wentWell = Array.isArray(report.wentWell) ? report.wentWell : [];
+  const hurtYou = Array.isArray(report.hurtYou) ? report.hurtYou : [];
+  const missedMoves = Array.isArray(report.missedMoves)
+    ? report.missedMoves
+    : [];
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-5">
@@ -100,13 +107,13 @@ export default function ReportCard({
       </div>
 
       {/* What worked */}
-      {report.wentWell.length > 0 && (
+      {wentWell.length > 0 && (
         <section className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
           <h3 className="flex items-center gap-2 text-sm font-semibold text-neutral-900 dark:text-neutral-100">
             <span aria-hidden="true">✅</span> What worked
           </h3>
           <ul className="mt-3 space-y-2">
-            {report.wentWell.map((item, i) => (
+            {wentWell.map((item, i) => (
               <li
                 key={i}
                 className="flex gap-2.5 text-sm text-neutral-700 dark:text-neutral-300"
@@ -125,13 +132,13 @@ export default function ReportCard({
       )}
 
       {/* What hurt you */}
-      {report.hurtYou.length > 0 && (
+      {hurtYou.length > 0 && (
         <section className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
           <h3 className="flex items-center gap-2 text-sm font-semibold text-neutral-900 dark:text-neutral-100">
             <span aria-hidden="true">🔍</span> What hurt you
           </h3>
           <div className="mt-4 space-y-4">
-            {report.hurtYou.map((h, i) => (
+            {hurtYou.map((h, i) => (
               <div
                 key={i}
                 className="rounded-xl border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-800 dark:bg-neutral-950/40"
@@ -153,13 +160,13 @@ export default function ReportCard({
       )}
 
       {/* Missed moves */}
-      {report.missedMoves.length > 0 && (
+      {missedMoves.length > 0 && (
         <section className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
           <h3 className="flex items-center gap-2 text-sm font-semibold text-neutral-900 dark:text-neutral-100">
             <span aria-hidden="true">🎯</span> Missed moves
           </h3>
           <ul className="mt-3 space-y-2">
-            {report.missedMoves.map((item, i) => (
+            {missedMoves.map((item, i) => (
               <li
                 key={i}
                 className="flex gap-2.5 text-sm text-neutral-700 dark:text-neutral-300"

@@ -23,14 +23,22 @@ const RISK_STYLES: Record<
   },
 };
 
+// The model is only prompted to emit low|medium|high; guard against anything
+// off-spec (capitalized, "moderate", missing) so a bad value can't crash render.
+function normalizeRisk(value: unknown): RiskLevel {
+  const v = typeof value === "string" ? value.trim().toLowerCase() : "";
+  return v === "low" || v === "high" ? v : "medium";
+}
+
 function RiskChip({ level }: { level: RiskLevel }) {
-  const s = RISK_STYLES[level];
+  const lvl = normalizeRisk(level);
+  const s = RISK_STYLES[lvl];
   return (
     <span
       className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${s.chip}`}
     >
       <span className={`h-1.5 w-1.5 rounded-full ${s.bar}`} aria-hidden="true" />
-      {level}
+      {lvl}
     </span>
   );
 }
@@ -42,7 +50,12 @@ export default function PremortemReportCard({
   report: PremortemReport;
   onRestart: () => void;
 }) {
-  const overall = RISK_STYLES[report.overallRisk];
+  const overallLevel = normalizeRisk(report.overallRisk);
+  const overall = RISK_STYLES[overallLevel];
+  const risks = Array.isArray(report.risks) ? report.risks : [];
+  const topInoculations = Array.isArray(report.topInoculations)
+    ? report.topInoculations
+    : [];
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-5">
@@ -64,7 +77,7 @@ export default function PremortemReportCard({
               className={`h-2 w-2 rounded-full ${overall.bar}`}
               aria-hidden="true"
             />
-            {report.overallRisk}
+            {overallLevel}
           </span>
         </div>
       </div>
@@ -80,13 +93,13 @@ export default function PremortemReportCard({
       </section>
 
       {/* Risks */}
-      {report.risks.length > 0 && (
+      {risks.length > 0 && (
         <section className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
           <h3 className="flex items-center gap-2 text-sm font-semibold text-neutral-900 dark:text-neutral-100">
             <span aria-hidden="true">⚠️</span> Risk breakdown
           </h3>
           <div className="mt-4 space-y-3">
-            {report.risks.map((r, i) => (
+            {risks.map((r, i) => (
               <div
                 key={i}
                 className="rounded-xl border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-800 dark:bg-neutral-950/40"
@@ -114,13 +127,13 @@ export default function PremortemReportCard({
       )}
 
       {/* Top inoculations — standout call-out */}
-      {report.topInoculations.length > 0 && (
+      {topInoculations.length > 0 && (
         <section className="rounded-2xl border border-indigo-200 bg-indigo-600 p-6 text-white shadow-sm dark:border-indigo-500/40">
           <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-indigo-200">
             <span aria-hidden="true">🛡️</span> Do these now
           </p>
           <ol className="mt-3 space-y-2.5">
-            {report.topInoculations.map((item, i) => (
+            {topInoculations.map((item, i) => (
               <li key={i} className="flex gap-3 text-sm font-medium leading-snug">
                 <span
                   className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/20 text-xs font-bold"
