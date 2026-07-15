@@ -54,6 +54,9 @@ const GHOST_BTN =
 const SECONDARY_BTN =
   "inline-flex items-center justify-center rounded-xl border border-neutral-300 bg-transparent px-4 py-2.5 text-sm font-medium text-neutral-700 transition hover:bg-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800";
 
+const FIELD_CLASS =
+  "w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm outline-none transition placeholder:text-neutral-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 disabled:opacity-50 dark:border-neutral-800 dark:bg-neutral-950 dark:placeholder:text-neutral-500 dark:focus:border-indigo-500 dark:focus:ring-indigo-950";
+
 /** POST JSON and surface a useful error message on any non-2xx / bad body. */
 async function postJson<T>(url: string, body: unknown): Promise<T> {
   const res = await fetch(url, {
@@ -72,6 +75,44 @@ async function postJson<T>(url: string, body: unknown): Promise<T> {
     throw new Error(msg);
   }
   return data as T;
+}
+
+/**
+ * POST to a streaming endpoint and invoke onDelta with the accumulated text as
+ * it arrives. Returns the final full text. Throws with the server error on a
+ * non-2xx (JSON) response.
+ */
+async function streamReply(
+  url: string,
+  body: unknown,
+  onDelta: (full: string) => void,
+): Promise<string> {
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok || !res.body) {
+    const data = (await res.json().catch(() => null)) as {
+      error?: string;
+    } | null;
+    throw new Error(data?.error || `Request failed (${res.status})`);
+  }
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let full = "";
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    full += decoder.decode(value, { stream: true });
+    onDelta(full);
+  }
+  return full.trim();
+}
+
+/** The scenario driving a session — a user-authored one, or a built-in. */
+function resolveScenario(s: Session): Scenario | undefined {
+  return s.customScenario ?? SCENARIOS.find((x) => x.id === s.scenarioId);
 }
 
 /** Finished sessions (a graded report or risk map), newest first. */
@@ -95,6 +136,11 @@ export default function Page() {
   const [rememberError, setRememberError] = useState<string | null>(null);
   const [confirmingLeave, setConfirmingLeave] = useState(false);
   const [recent, setRecent] = useState<Session[]>([]);
+  const [creatingCustom, setCreatingCustom] = useState(false);
+  const [customSituation, setCustomSituation] = useState("");
+  const [customPersona, setCustomPersona] = useState("");
+  const [customGoal, setCustomGoal] = useState("");
+  const [buildingScenario, setBuildingScenario] = useState(false);
 
   // Mirror the current session in a ref so async handlers can tell, after an
   // await, whether the user has since navigated away / switched sessions.
@@ -114,8 +160,8 @@ export default function Page() {
   const busy = awaitingReply || finishing;
   const atLimit = used >= FREE_DAILY_LIMIT;
 
-  const scenario: Scenario | undefined = session?.scenarioId
-    ? SCENARIOS.find((s: Scenario) => s.id === session.scenarioId)
+  const scenario: Scenario | undefined = session
+    ? resolveScenario(session)
     : undefined;
 
   // When a real person is attached, they — not the generic scenario persona —
@@ -144,6 +190,11 @@ export default function Page() {
     setRememberedNotes(null);
     setRememberError(null);
     setConfirmingLeave(false);
+    setCreatingCustom(false);
+    setCustomSituation("");
+    setCustomPersona("");
+    setCustomGoal("");
+    setBuildingScenario(false);
     setUsed(getUsage().sessionsStarted);
     setPeople(listPeople());
     setRecent(finishedSessions());
@@ -175,7 +226,7 @@ export default function Page() {
 
   // ---- Conversation flow ---------------------------------------------------
 
-  function startConversation(s: Scenario) {
+  function startConversation(s: Scenario, custom = false) {
     setError(null);
     if (!canStartSession()) {
       setUsed(getUsage().sessionsStarted);
@@ -187,7 +238,8 @@ export default function Page() {
     const sess: Session = {
       id: newId(),
       mode: "conversation",
-      scenarioId: s.id,
+      scenarioId: custom ? undefined : s.id,
+      customScenario: custom ? s : undefined,
       personId: selectedPersonId ?? undefined,
       messages: [{ role: "assistant", content: s.openingLine, ts: now }],
       createdAt: now,
@@ -196,7 +248,42 @@ export default function Page() {
     setSession(sess);
     setRememberedNotes(null);
     setRememberError(null);
+    setCreatingCustom(false);
     setView("chat");
+  }
+
+  // Turn the user's free-text description into a full scenario, then start it.
+  async function handleCreateCustom() {
+    const situation = customSituation.trim();
+    if (!situation) {
+      setError("Describe the situation you want to practice.");
+      return;
+    }
+    setError(null);
+    if (!canStartSession()) {
+      setUsed(getUsage().sessionsStarted);
+      return;
+    }
+    setBuildingScenario(true);
+    try {
+      const { scenario } = await postJson<{ scenario: Scenario }>(
+        "/api/scenario",
+        {
+          situation,
+          persona: customPersona.trim() || undefined,
+          goal: customGoal.trim() || undefined,
+        },
+      );
+      startConversation(scenario, true);
+    } catch (e) {
+      setError(
+        e instanceof Error
+          ? e.message
+          : "Couldn't build that scenario. Try again.",
+      );
+    } finally {
+      setBuildingScenario(false);
+    }
   }
 
   // ---- Pre-mortem flow -----------------------------------------------------
@@ -225,14 +312,16 @@ export default function Page() {
     // the user in an empty chat with a session already burned.
     setAwaitingReply(true);
     try {
-      const data = await postJson<{ reply: string }>("/api/premortem", {
-        messages: sess.messages,
-        action: "reply",
-        decision: d,
-      });
+      // Consume the streamed opening question fully before entering the chat, so
+      // a failed first call can't strand the user in an empty conversation.
+      const reply = await streamReply(
+        "/api/premortem",
+        { messages: sess.messages, action: "reply", decision: d },
+        () => {},
+      );
       const aMsg: ChatMessage = {
         role: "assistant",
-        content: data.reply,
+        content: reply || "…",
         ts: Date.now(),
       };
       const withReply: Session = {
@@ -262,56 +351,58 @@ export default function Page() {
     const trimmed = text.trim();
     if (!trimmed) return;
     setError(null);
-    const userMsg: ChatMessage = {
-      role: "user",
-      content: trimmed,
-      ts: Date.now(),
-    };
-    const withUser: Session = {
+    const now = Date.now();
+    const userMsg: ChatMessage = { role: "user", content: trimmed, ts: now };
+    const base: Session = {
       ...session,
       messages: [...session.messages, userMsg],
     };
-    setSession(withUser);
-    saveSession(withUser);
+    const convoId = base.id;
+    // Show the user's turn plus an empty assistant bubble that fills as it streams.
+    setSession({
+      ...base,
+      messages: [...base.messages, { role: "assistant", content: "", ts: now + 1 }],
+    });
     setAwaitingReply(true);
     try {
-      let reply: string;
-      if (withUser.mode === "conversation") {
-        const sc = SCENARIOS.find((s: Scenario) => s.id === withUser.scenarioId);
+      let url: string;
+      let body: unknown;
+      if (base.mode === "conversation") {
+        const sc = resolveScenario(base);
         if (!sc) throw new Error("Scenario not found.");
-        const person = withUser.personId
-          ? getPerson(withUser.personId)
-          : undefined;
-        const data = await postJson<{ reply: string }>("/api/roleplay", {
-          scenario: sc,
-          messages: withUser.messages,
-          person,
-        });
-        reply = data.reply;
+        const person = base.personId ? getPerson(base.personId) : undefined;
+        url = "/api/roleplay";
+        body = { scenario: sc, messages: base.messages, person };
       } else {
-        const data = await postJson<{ reply: string }>("/api/premortem", {
-          messages: withUser.messages,
+        url = "/api/premortem";
+        body = {
+          messages: base.messages,
           action: "reply",
-          decision: withUser.decision,
-        });
-        reply = data.reply;
+          decision: base.decision,
+        };
       }
-      const aMsg: ChatMessage = {
-        role: "assistant",
-        content: reply,
-        ts: Date.now(),
+      const full = await streamReply(url, body, (partial) => {
+        // Live-update the trailing assistant bubble; bail if the user moved on.
+        setSession((prev) => {
+          if (!prev || prev.id !== convoId) return prev;
+          const msgs = prev.messages.slice();
+          msgs[msgs.length - 1] = { ...msgs[msgs.length - 1], content: partial };
+          return { ...prev, messages: msgs };
+        });
+      });
+      if (sessionRef.current?.id !== convoId) return; // navigated away mid-stream
+      const ended: Session = {
+        ...base,
+        messages: [
+          ...base.messages,
+          { role: "assistant", content: full || "…", ts: Date.now() },
+        ],
       };
-      const withReply: Session = {
-        ...withUser,
-        messages: [...withUser.messages, aMsg],
-      };
-      if (sessionRef.current?.id !== withUser.id) return; // user navigated away
-      setSession(withReply);
-      saveSession(withReply);
+      setSession(ended);
+      saveSession(ended);
     } catch (e) {
-      // Roll the optimistic user turn back out so a failed send doesn't leave a
-      // dangling user message (which would also double up on the next attempt).
-      if (sessionRef.current?.id === withUser.id) {
+      // Roll the optimistic user turn + placeholder back out on failure.
+      if (sessionRef.current?.id === convoId) {
         setSession(session);
         saveSession(session);
       }
@@ -331,7 +422,7 @@ export default function Page() {
     setFinishing(true);
     try {
       if (session.mode === "conversation") {
-        const sc = SCENARIOS.find((s: Scenario) => s.id === session.scenarioId);
+        const sc = resolveScenario(session);
         if (!sc) throw new Error("Scenario not found.");
         const person = session.personId
           ? getPerson(session.personId)
@@ -422,6 +513,15 @@ export default function Page() {
       ? session.messages.some((m) => m.role === "user")
       : (session?.messages.length ?? 0) >= 3;
 
+  // Show the typing indicator only until the streamed reply's first token lands
+  // (after that, the filling assistant bubble carries the "it's happening" signal).
+  const lastMessage = session?.messages[session.messages.length - 1];
+  const showTyping =
+    awaitingReply &&
+    (!lastMessage ||
+      lastMessage.role !== "assistant" ||
+      lastMessage.content.trim() === "");
+
   // ---- Render --------------------------------------------------------------
 
   return (
@@ -459,6 +559,7 @@ export default function Page() {
             onChange={(m) => {
               setMode(m);
               setError(null);
+              setCreatingCustom(false);
             }}
           />
 
@@ -503,6 +604,69 @@ export default function Page() {
                 onPick={startConversation}
                 disabled={atLimit}
               />
+
+              {!creatingCustom ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCreatingCustom(true);
+                    setError(null);
+                  }}
+                  disabled={atLimit}
+                  className="rounded-2xl border border-dashed border-neutral-300 p-4 text-left text-sm font-medium text-neutral-600 transition hover:border-indigo-400 hover:text-indigo-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-700 dark:text-neutral-300 dark:hover:border-indigo-500 dark:hover:text-indigo-400"
+                >
+                  ✏️ Or describe your own situation →
+                </button>
+              ) : (
+                <div className="rounded-2xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-semibold">
+                      Describe your own conversation
+                    </h3>
+                    <button
+                      onClick={() => setCreatingCustom(false)}
+                      className={GHOST_BTN}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                  <div className="mt-3 flex flex-col gap-3">
+                    <textarea
+                      value={customSituation}
+                      onChange={(e) => setCustomSituation(e.target.value)}
+                      rows={3}
+                      placeholder="What's the conversation? e.g. Tell my landlord I'm withholding rent until the heating is fixed"
+                      className={`${FIELD_CLASS} resize-none`}
+                      aria-label="Situation"
+                    />
+                    <input
+                      value={customPersona}
+                      onChange={(e) => setCustomPersona(e.target.value)}
+                      placeholder="Who are you talking to? (optional)"
+                      className={FIELD_CLASS}
+                      aria-label="Who you're talking to"
+                    />
+                    <input
+                      value={customGoal}
+                      onChange={(e) => setCustomGoal(e.target.value)}
+                      placeholder="What do you want out of it? (optional)"
+                      className={FIELD_CLASS}
+                      aria-label="Your goal"
+                    />
+                    <div className="flex justify-end">
+                      <button
+                        onClick={handleCreateCustom}
+                        disabled={
+                          atLimit || !customSituation.trim() || buildingScenario
+                        }
+                        className={PRIMARY_BTN}
+                      >
+                        {buildingScenario ? "Building…" : "Create & start →"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </section>
           ) : (
             <section className="flex flex-col gap-4">
@@ -609,7 +773,7 @@ export default function Page() {
             <ChatWindow
               messages={session.messages}
               personaName={personaName}
-              loading={awaitingReply}
+              loading={showTyping}
             />
           </div>
 
@@ -678,12 +842,16 @@ export default function Page() {
                   onRemember={() => handleRemember()}
                 />
               )}
+              <ShareBar session={session} scenario={scenario} />
             </div>
           ) : session.mode === "premortem" && session.premortemReport ? (
-            <PremortemReportCard
-              report={session.premortemReport}
-              onRestart={goHome}
-            />
+            <div className="flex flex-col gap-4">
+              <PremortemReportCard
+                report={session.premortemReport}
+                onRestart={goHome}
+              />
+              <ShareBar session={session} />
+            </div>
           ) : (
             <div className="rounded-2xl border border-neutral-200 bg-white p-6 text-center dark:border-neutral-800 dark:bg-neutral-900">
               <p className="text-sm text-neutral-500 dark:text-neutral-400">
@@ -772,7 +940,7 @@ function RecentSessions({
         {sessions.slice(0, 6).map((s) => {
           const conv = s.mode === "conversation";
           const sc = conv
-            ? SCENARIOS.find((x) => x.id === s.scenarioId)
+            ? s.customScenario ?? SCENARIOS.find((x) => x.id === s.scenarioId)
             : undefined;
           const title = conv ? sc?.title ?? "Conversation" : "Pre-mortem";
           const emoji = conv ? sc?.emoji ?? "🎭" : "🔮";
@@ -824,6 +992,87 @@ function RecentSessions({
         })}
       </ul>
     </section>
+  );
+}
+
+function ShareBar({
+  session,
+  scenario,
+}: {
+  session: Session;
+  scenario?: Scenario;
+}) {
+  const [copied, setCopied] = useState(false);
+  const [canShare, setCanShare] = useState(false);
+
+  // Detect native share after mount to avoid an SSR/client hydration mismatch.
+  useEffect(() => {
+    setCanShare(
+      typeof navigator !== "undefined" && typeof navigator.share === "function",
+    );
+  }, []);
+
+  const conv = session.mode === "conversation";
+  const summary =
+    conv && session.report
+      ? `I scored ${Math.round(session.report.overallScore)}/100 rehearsing "${
+          scenario?.title ?? "a hard conversation"
+        }" on Rehearse.\n\n"${session.report.headline}"\n\nPractice the conversations that scare you.`
+      : session.premortemReport
+        ? `Pre-mortem risk map: ${session.premortemReport.overallRisk.toUpperCase()} risk for "${session.premortemReport.decision}".\n\nPractice the decisions that scare you — on Rehearse.`
+        : "";
+
+  const ogUrl =
+    conv && session.report
+      ? `/api/og?type=conversation&score=${Math.round(
+          session.report.overallScore,
+        )}&title=${encodeURIComponent(
+          scenario?.title ?? "",
+        )}&headline=${encodeURIComponent(session.report.headline)}`
+      : session.premortemReport
+        ? `/api/og?type=premortem&risk=${encodeURIComponent(
+            session.premortemReport.overallRisk,
+          )}&decision=${encodeURIComponent(session.premortemReport.decision)}`
+        : "";
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(summary);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1800);
+    } catch {
+      // clipboard unavailable / blocked — non-fatal
+    }
+  }
+
+  async function share() {
+    try {
+      await navigator.share({ title: "Rehearse", text: summary });
+    } catch {
+      // share cancelled or failed — fall back to copy
+      copy();
+    }
+  }
+
+  return (
+    <div className="flex flex-wrap items-center justify-center gap-2">
+      <button onClick={copy} className={SECONDARY_BTN}>
+        {copied ? "Copied ✓" : "Copy summary"}
+      </button>
+      <a
+        href={ogUrl}
+        target="_blank"
+        rel="noreferrer"
+        className={SECONDARY_BTN}
+      >
+        Save image
+      </a>
+      {canShare && (
+        <button onClick={share} className={SECONDARY_BTN}>
+          Share
+        </button>
+      )}
+    </div>
   );
 }
 
