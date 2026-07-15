@@ -38,7 +38,7 @@ function difficultyDirective(scenario: Scenario): string {
 }
 
 /**
- * roleplaySystem — turns Claude into the other person in a hard conversation.
+ * roleplaySystem — turns the model into the other person in a hard conversation.
  * The model must BE the persona: no coaching, no narration, no AI self-awareness.
  * When `person` is supplied, the model plays that REAL person from the user's
  * life (using their remembered notes) instead of the scenario's generic persona,
@@ -202,6 +202,30 @@ Return ONLY a single valid JSON object — no markdown, no code fences, no prose
   "topInoculations": ["<highest-leverage action to take now>", "..."]
 }
 Include 4–6 risks spanning the dimensions that mattered most in the interview. Every likelihood and overallRisk MUST be exactly one of "low", "medium", or "high".`;
+}
+
+/**
+ * scenarioBuilderSystem — turns a user's short description of a hard conversation
+ * they want to practice into a full, playable Scenario. Returns ONLY JSON.
+ */
+export function scenarioBuilderSystem(): string {
+  return `You turn a user's short description of a hard conversation they want to rehearse into a rich, believable, playable scenario for a roleplay simulator.
+
+The user will describe the situation — who they need to talk to, what it's about, and what they want. Build ONE scenario from it. Infer a sensible difficulty from how charged it sounds. If they gave little detail, invent believable specifics that fit; keep everyone human and realistic, never cartoonish.
+
+Return ONLY a single valid JSON object — no markdown, no code fences, no prose before or after — with EXACTLY these keys:
+{
+  "emoji": "<one emoji that fits the scene>",
+  "title": "<a short 2–5 word title, e.g. 'Ask for a raise'>",
+  "blurb": "<a punchy one-liner, ~90 chars max, capturing the tension>",
+  "personaName": "<a natural first name or label for the other person>",
+  "personaRole": "<the other person's role from the user's point of view, e.g. 'your manager', 'your landlord'>",
+  "personaBrief": "<5–7 sentences of HIDDEN direction for the actor playing this person: their motivations, defenses, the exact tactics they use (deflection, guilt, policy, going quiet), what makes them escalate, and what genuinely makes them soften>",
+  "difficulty": "easy" | "realistic" | "hard",
+  "openingLine": "<the first thing this person says out loud to open the scene — natural, in character, already carrying a little tension>",
+  "userGoal": "<one sentence: what the user is trying to achieve. Refer to the other person as \\"them\\", never by name.>"
+}
+"difficulty" MUST be exactly one of "easy", "realistic", or "hard".`;
 }
 
 /**

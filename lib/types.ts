@@ -75,6 +75,7 @@ export interface Session {
   id: string;
   mode: Mode;
   scenarioId?: string;
+  customScenario?: Scenario; // a user-authored scenario (not in the built-in list)
   personId?: string; // the real person this conversation was played as, if any
   decision?: string; // for premortem sessions
   messages: ChatMessage[];
