@@ -1,19 +1,12 @@
 import { MODELS, completeJson } from "@/lib/claude";
-import { analysisSystem, transcriptToText } from "@/lib/prompts";
-import type { ChatMessage, Person, Report, Scenario } from "@/lib/types";
+import { memoryExtractionSystem, transcriptToText } from "@/lib/prompts";
+import type { ChatMessage, Person } from "@/lib/types";
 
 export const runtime = "nodejs";
 
-interface AnalyzeBody {
-  scenario: Scenario;
+interface RememberBody {
+  person: Person;
   messages: ChatMessage[];
-  person?: Person;
-}
-
-function isScenario(value: unknown): value is Scenario {
-  if (typeof value !== "object" || value === null) return false;
-  const s = value as Record<string, unknown>;
-  return typeof s.id === "string" && typeof s.personaName === "string";
 }
 
 function isPerson(value: unknown): value is Person {
@@ -44,11 +37,11 @@ export async function POST(req: Request): Promise<Response> {
     return Response.json({ error: "Invalid JSON body." }, { status: 400 });
   }
 
-  const { scenario, messages, person } = (body ?? {}) as Partial<AnalyzeBody>;
+  const { person, messages } = (body ?? {}) as Partial<RememberBody>;
 
-  if (!isScenario(scenario)) {
+  if (!isPerson(person)) {
     return Response.json(
-      { error: "A valid `scenario` is required." },
+      { error: "A valid `person` is required." },
       { status: 400 },
     );
   }
@@ -60,22 +53,21 @@ export async function POST(req: Request): Promise<Response> {
   }
 
   try {
-    const activePerson = isPerson(person) ? person : undefined;
-    const system = analysisSystem(scenario, activePerson);
-    const user = transcriptToText(
-      messages,
-      activePerson ? activePerson.name : scenario.personaName,
-    );
-    const report = await completeJson<Report>({
+    const system = memoryExtractionSystem(person);
+    const user = transcriptToText(messages, person.name);
+    const { notes } = await completeJson<{ notes: string[] }>({
       model: MODELS.analysis,
       system,
       user,
-      maxTokens: 2048,
+      maxTokens: 512,
     });
-    return Response.json({ report });
+    const clean = Array.isArray(notes)
+      ? notes.filter((n): n is string => typeof n === "string" && n.trim().length > 0)
+      : [];
+    return Response.json({ notes: clean });
   } catch (err) {
     const message =
-      err instanceof Error ? err.message : "Failed to generate the report.";
+      err instanceof Error ? err.message : "Failed to save what you learned.";
     return Response.json({ error: message }, { status: 500 });
   }
 }

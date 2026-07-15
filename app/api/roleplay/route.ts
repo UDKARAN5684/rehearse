@@ -1,12 +1,19 @@
 import { MODELS, complete } from "@/lib/claude";
 import { roleplaySystem } from "@/lib/prompts";
-import type { ChatMessage, Scenario } from "@/lib/types";
+import type { ChatMessage, Person, Scenario } from "@/lib/types";
 
 export const runtime = "nodejs";
 
 interface RoleplayBody {
   scenario: Scenario;
   messages: ChatMessage[];
+  person?: Person;
+}
+
+function isPerson(value: unknown): value is Person {
+  if (typeof value !== "object" || value === null) return false;
+  const p = value as Record<string, unknown>;
+  return typeof p.name === "string" && typeof p.relationship === "string";
 }
 
 function isScenario(value: unknown): value is Scenario {
@@ -37,7 +44,7 @@ export async function POST(req: Request): Promise<Response> {
     return Response.json({ error: "Invalid JSON body." }, { status: 400 });
   }
 
-  const { scenario, messages } = (body ?? {}) as Partial<RoleplayBody>;
+  const { scenario, messages, person } = (body ?? {}) as Partial<RoleplayBody>;
 
   if (!isScenario(scenario)) {
     return Response.json(
@@ -53,7 +60,7 @@ export async function POST(req: Request): Promise<Response> {
   }
 
   try {
-    const system = roleplaySystem(scenario);
+    const system = roleplaySystem(scenario, isPerson(person) ? person : undefined);
     const reply = await complete({
       model: MODELS.roleplay,
       system,
