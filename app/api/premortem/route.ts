@@ -7,6 +7,7 @@ import {
 import type { ChatMessage, PremortemReport } from "@/lib/types";
 
 export const runtime = "nodejs";
+export const maxDuration = 60; // LLM calls can exceed the 10s serverless default
 
 type PremortemAction = "reply" | "report";
 

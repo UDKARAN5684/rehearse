@@ -3,6 +3,7 @@ import { roleplaySystem } from "@/lib/prompts";
 import type { ChatMessage, Person, Scenario } from "@/lib/types";
 
 export const runtime = "nodejs";
+export const maxDuration = 60; // LLM calls can exceed the 10s serverless default
 
 interface RoleplayBody {
   scenario: Scenario;

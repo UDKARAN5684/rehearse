@@ -3,6 +3,7 @@ import { memoryExtractionSystem, transcriptToText } from "@/lib/prompts";
 import type { ChatMessage, Person } from "@/lib/types";
 
 export const runtime = "nodejs";
+export const maxDuration = 60; // LLM calls can exceed the 10s serverless default
 
 interface RememberBody {
   person: Person;

@@ -38,6 +38,22 @@ The API routes throw a clear error (mentioning `.env.local`) if the key is missi
 
 ---
 
+## Deploy (Vercel)
+
+Rehearse is a stock Next.js app, so Vercel auto-detects the framework — no `vercel.json` needed.
+
+1. Push to GitHub (done).
+2. In Vercel: **Add New → Project**, import the `rehearse` repo.
+3. Add an environment variable **`ANTHROPIC_API_KEY`** = your key, for **Production** (and Preview if you want deploy previews to work).
+4. **Deploy.** You get a live URL in about a minute.
+
+**Notes**
+
+- Each API route runs as a Node serverless function with `export const maxDuration = 60`, so the Sonnet analysis/report/memory calls don't hit Vercel's default 10s timeout.
+- **Cost & access:** the free daily cap lives in the browser, so it does **not** protect the server endpoints — anyone who has the URL can hit `/api/*` and spend your Anthropic credits. Keep the URL private for personal use; before sharing it widely, enable Vercel **Deployment Protection** or add real auth + server-side rate-limiting (see the roadmap).
+
+---
+
 ## Model routing & cost
 
 Rehearse routes each call to the cheapest model that's good enough for the job. The routing lives in `lib/claude.ts` (`MODELS`), so it's one place to tune.
