@@ -1,4 +1,4 @@
-import { MODELS, completeJson } from "@/lib/claude";
+import { MODELS, completeJson } from "@/lib/llm";
 import { analysisSystem, transcriptToText } from "@/lib/prompts";
 import type { ChatMessage, Person, Report, Scenario } from "@/lib/types";
 

@@ -1,4 +1,4 @@
-import { MODELS, complete, completeJson } from "@/lib/claude";
+import { MODELS, completeJson, streamText } from "@/lib/llm";
 import {
   premortemReportSystem,
   premortemSystem,
@@ -49,22 +49,29 @@ export async function POST(req: Request): Promise<Response> {
   }
   if (action !== "reply" && action !== "report") {
     return Response.json(
-      { error: "`action` must be either \"reply\" or \"report\"." },
+      { error: '`action` must be either "reply" or "report".' },
       { status: 400 },
     );
   }
 
   try {
     if (action === "reply") {
-      const reply = await complete({
+      // The interviewer's turns stream token-by-token.
+      const stream = await streamText({
         model: MODELS.premortem,
         system: premortemSystem(),
         messages: messages.map((m) => ({ role: m.role, content: m.content })),
         maxTokens: 400,
       });
-      return Response.json({ reply });
+      return new Response(stream, {
+        headers: {
+          "Content-Type": "text/plain; charset=utf-8",
+          "Cache-Control": "no-store",
+        },
+      });
     }
 
+    // The final risk map is structured JSON, not streamed.
     const report = await completeJson<PremortemReport>({
       model: MODELS.premortemReport,
       system: premortemReportSystem(),

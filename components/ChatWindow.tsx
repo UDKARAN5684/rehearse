@@ -30,13 +30,15 @@ export default function ChatWindow({
       aria-label="Conversation transcript"
     >
       <div className="flex flex-col gap-4">
-        {messages.map((m, i) => (
-          <MessageBubble
-            key={`${m.ts}-${i}`}
-            message={m}
-            personaName={personaName}
-          />
-        ))}
+        {messages
+          .filter((m) => m.content.trim().length > 0)
+          .map((m, i) => (
+            <MessageBubble
+              key={`${m.ts}-${i}`}
+              message={m}
+              personaName={personaName}
+            />
+          ))}
 
         {loading && (
           <div className="flex flex-col items-start">

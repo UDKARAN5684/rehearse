@@ -1,4 +1,4 @@
-import { MODELS, complete } from "@/lib/claude";
+import { MODELS, streamText } from "@/lib/llm";
 import { roleplaySystem } from "@/lib/prompts";
 import type { ChatMessage, Person, Scenario } from "@/lib/types";
 
@@ -61,10 +61,9 @@ export async function POST(req: Request): Promise<Response> {
   }
 
   try {
-    // The Anthropic Messages API requires the first message to be a user turn.
-    // The scenario's opening line is seeded client-side as the first assistant
-    // message, so fold any leading assistant turn(s) into the system prompt and
-    // drop them from the array we send.
+    // The chat transcript should start with a user turn. The scenario's opening
+    // line is seeded client-side as the first assistant message, so fold any
+    // leading assistant turn(s) into the system prompt and drop them here.
     const opening: string[] = [];
     let convo = messages;
     while (convo.length > 0 && convo[0].role === "assistant") {
@@ -80,13 +79,19 @@ export async function POST(req: Request): Promise<Response> {
       system += `\n\nYou have already opened this conversation by saying: "${opening.join(" ")}" — continue naturally from there and do not repeat your opening.`;
     }
 
-    const reply = await complete({
+    // Stream the persona's reply token-by-token.
+    const stream = await streamText({
       model: MODELS.roleplay,
       system,
       messages: convo.map((m) => ({ role: m.role, content: m.content })),
       maxTokens: 400,
     });
-    return Response.json({ reply });
+    return new Response(stream, {
+      headers: {
+        "Content-Type": "text/plain; charset=utf-8",
+        "Cache-Control": "no-store",
+      },
+    });
   } catch (err) {
     const message =
       err instanceof Error ? err.message : "Failed to generate a reply.";

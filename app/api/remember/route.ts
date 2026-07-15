@@ -1,4 +1,4 @@
-import { MODELS, completeJson } from "@/lib/claude";
+import { MODELS, completeJson } from "@/lib/llm";
 import { memoryExtractionSystem, transcriptToText } from "@/lib/prompts";
 import type { ChatMessage, Person } from "@/lib/types";
 
