@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import type {
   ChatMessage,
   Mode,
+  Person,
   PremortemReport,
   Report,
   Scenario,
@@ -12,6 +13,13 @@ import type {
 import { SCENARIOS } from "@/lib/scenarios";
 import { newId, saveSession } from "@/lib/store";
 import {
+  appendNotes,
+  deletePerson,
+  getPerson,
+  listPeople,
+  savePerson,
+} from "@/lib/people";
+import {
   FREE_DAILY_LIMIT,
   canStartSession,
   getUsage,
@@ -19,13 +27,15 @@ import {
 } from "@/lib/usage";
 import ModeTabs from "@/components/ModeTabs";
 import ScenarioPicker from "@/components/ScenarioPicker";
+import PersonSelect from "@/components/PersonSelect";
+import PeopleManager from "@/components/PeopleManager";
 import ChatWindow from "@/components/ChatWindow";
 import Composer from "@/components/Composer";
 import ReportCard from "@/components/ReportCard";
 import PremortemReportCard from "@/components/PremortemReportCard";
 import UsageBadge from "@/components/UsageBadge";
 
-type View = "home" | "chat" | "report";
+type View = "home" | "chat" | "report" | "people";
 
 const PREMORTEM_PERSONA = "Interviewer";
 
@@ -67,10 +77,17 @@ export default function Page() {
   const [finishing, setFinishing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [used, setUsed] = useState(0);
+  const [people, setPeople] = useState<Person[]>([]);
+  const [selectedPersonId, setSelectedPersonId] = useState<string | null>(null);
+  const [remembering, setRemembering] = useState(false);
+  const [rememberedNotes, setRememberedNotes] = useState<string[] | null>(null);
+  const [rememberError, setRememberError] = useState<string | null>(null);
 
-  // Read usage on mount only (localStorage is not available during SSR/render).
+  // Read usage + saved people on mount only (localStorage is unavailable during
+  // SSR/render, so these must not run during the render pass).
   useEffect(() => {
     setUsed(getUsage().sessionsStarted);
+    setPeople(listPeople());
   }, []);
 
   const busy = awaitingReply || finishing;
@@ -80,10 +97,20 @@ export default function Page() {
     ? SCENARIOS.find((s: Scenario) => s.id === session.scenarioId)
     : undefined;
 
+  // When a real person is attached, they — not the generic scenario persona —
+  // drive every name the user sees (chat labels, header, composer, report).
+  const activePerson: Person | undefined =
+    session?.mode === "conversation" && session.personId
+      ? people.find((p) => p.id === session.personId)
+      : undefined;
+
   const personaName =
     session?.mode === "premortem"
       ? PREMORTEM_PERSONA
-      : scenario?.personaName ?? "Them";
+      : activePerson?.name ?? scenario?.personaName ?? "Them";
+
+  const personaRoleLabel =
+    activePerson?.relationship ?? scenario?.personaRole ?? "";
 
   function goHome() {
     setView("home");
@@ -92,7 +119,11 @@ export default function Page() {
     setDecision("");
     setAwaitingReply(false);
     setFinishing(false);
+    setRemembering(false);
+    setRememberedNotes(null);
+    setRememberError(null);
     setUsed(getUsage().sessionsStarted);
+    setPeople(listPeople());
   }
 
   // ---- Conversation flow ---------------------------------------------------
@@ -110,11 +141,14 @@ export default function Page() {
       id: newId(),
       mode: "conversation",
       scenarioId: s.id,
+      personId: selectedPersonId ?? undefined,
       messages: [{ role: "assistant", content: s.openingLine, ts: now }],
       createdAt: now,
     };
     saveSession(sess);
     setSession(sess);
+    setRememberedNotes(null);
+    setRememberError(null);
     setView("chat");
   }
 
@@ -198,9 +232,13 @@ export default function Page() {
       if (withUser.mode === "conversation") {
         const sc = SCENARIOS.find((s: Scenario) => s.id === withUser.scenarioId);
         if (!sc) throw new Error("Scenario not found.");
+        const person = withUser.personId
+          ? getPerson(withUser.personId)
+          : undefined;
         const data = await postJson<{ reply: string }>("/api/roleplay", {
           scenario: sc,
           messages: withUser.messages,
+          person,
         });
         reply = data.reply;
       } else {
@@ -239,9 +277,13 @@ export default function Page() {
       if (session.mode === "conversation") {
         const sc = SCENARIOS.find((s: Scenario) => s.id === session.scenarioId);
         if (!sc) throw new Error("Scenario not found.");
+        const person = session.personId
+          ? getPerson(session.personId)
+          : undefined;
         const data = await postJson<{ report: Report }>("/api/analyze", {
           scenario: sc,
           messages: session.messages,
+          person,
         });
         const ended: Session = {
           ...session,
@@ -250,6 +292,10 @@ export default function Page() {
         };
         setSession(ended);
         saveSession(ended);
+        setView("report");
+        // Close the compounding loop automatically: learn about the real person.
+        if (ended.personId) void handleRemember(ended);
+        return;
       } else {
         const data = await postJson<{ report: PremortemReport }>(
           "/api/premortem",
@@ -276,6 +322,41 @@ export default function Page() {
       );
     } finally {
       setFinishing(false);
+    }
+  }
+
+  // After a conversation with a real person, extract durable notes about them
+  // and fold them into that person's profile — the memory that compounds. Runs
+  // automatically on finish; can also be retried from the report panel.
+  async function handleRemember(target?: Session) {
+    const sess = target ?? session;
+    if (!sess || !sess.personId) return;
+    const person = getPerson(sess.personId);
+    if (!person) {
+      setRememberError("That person is no longer saved, so there's nothing to update.");
+      return;
+    }
+    setRemembering(true);
+    setRememberError(null);
+    try {
+      const data = await postJson<{ notes: string[] }>("/api/remember", {
+        person,
+        messages: sess.messages,
+      });
+      const updated: Person = {
+        ...person,
+        notes: appendNotes(person.notes, data.notes),
+        updatedAt: Date.now(),
+      };
+      savePerson(updated);
+      setPeople(listPeople());
+      setRememberedNotes(data.notes);
+    } catch (e) {
+      setRememberError(
+        e instanceof Error ? e.message : "Couldn't save what you learned.",
+      );
+    } finally {
+      setRemembering(false);
     }
   }
 
@@ -336,6 +417,14 @@ export default function Page() {
                   card.
                 </p>
               </div>
+
+              <PersonSelect
+                people={people}
+                selectedId={selectedPersonId}
+                onSelect={setSelectedPersonId}
+                onManage={() => setView("people")}
+                disabled={atLimit}
+              />
 
               <div className="flex items-center justify-between">
                 <h2 className="text-sm font-medium text-neutral-600 dark:text-neutral-300">
@@ -423,7 +512,12 @@ export default function Page() {
                     {scenario.title}
                   </div>
                   <div className="truncate text-xs text-neutral-500 dark:text-neutral-400">
-                    {scenario.personaName} · {scenario.personaRole}
+                    {personaName} · {personaRoleLabel}
+                    {activePerson && (
+                      <span className="ml-1 text-indigo-500 dark:text-indigo-400">
+                        · from memory
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -508,7 +602,20 @@ export default function Page() {
       {view === "report" && session && (
         <div className="flex-1 py-6 pb-12">
           {session.mode === "conversation" && session.report ? (
-            <ReportCard report={session.report} onRestart={goHome} />
+            <div className="flex flex-col gap-4">
+              <ReportCard report={session.report} onRestart={goHome} />
+              {session.personId && (
+                <RememberPanel
+                  name={
+                    people.find((p) => p.id === session.personId)?.name ?? "them"
+                  }
+                  loading={remembering}
+                  notes={rememberedNotes}
+                  error={rememberError}
+                  onRemember={handleRemember}
+                />
+              )}
+            </div>
           ) : session.mode === "premortem" && session.premortemReport ? (
             <PremortemReportCard
               report={session.premortemReport}
@@ -525,6 +632,23 @@ export default function Page() {
             </div>
           )}
         </div>
+      )}
+
+      {/* -------------------------------------------------------------- PEOPLE */}
+      {view === "people" && (
+        <PeopleManager
+          people={people}
+          onSave={(p) => {
+            savePerson(p);
+            setPeople(listPeople());
+          }}
+          onDelete={(id) => {
+            deletePerson(id);
+            setPeople(listPeople());
+            if (selectedPersonId === id) setSelectedPersonId(null);
+          }}
+          onBack={() => setView("home")}
+        />
       )}
     </main>
   );
@@ -543,6 +667,66 @@ function LimitCallout({ used }: { used: number }) {
       <div className="mt-3">
         <UsageBadge used={used} limit={FREE_DAILY_LIMIT} />
       </div>
+    </div>
+  );
+}
+
+function RememberPanel({
+  name,
+  loading,
+  notes,
+  error,
+  onRemember,
+}: {
+  name: string;
+  loading: boolean;
+  notes: string[] | null;
+  error: string | null;
+  onRemember: () => void;
+}) {
+  const isLoading = loading || (notes === null && !error);
+  return (
+    <div className="rounded-2xl border border-indigo-200 bg-indigo-50/60 p-5 dark:border-indigo-900/50 dark:bg-indigo-950/30">
+      <div className="text-sm font-semibold text-indigo-900 dark:text-indigo-200">
+        🧠 Remembering {name} for next time
+      </div>
+      {isLoading ? (
+        <div className="mt-2 flex items-center gap-2 text-sm text-indigo-800/80 dark:text-indigo-200/70">
+          <span className="h-4 w-4 animate-spin rounded-full border-2 border-indigo-300 border-t-indigo-600 dark:border-indigo-800 dark:border-t-indigo-400" />
+          Saving what the AI just learned about {name}…
+        </div>
+      ) : error ? (
+        <>
+          <p className="mt-1 text-sm text-red-600 dark:text-red-400">{error}</p>
+          <button
+            onClick={onRemember}
+            className="mt-3 inline-flex items-center justify-center rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+          >
+            Try again
+          </button>
+        </>
+      ) : notes && notes.length === 0 ? (
+        <p className="mt-1 text-sm text-indigo-800/80 dark:text-indigo-200/70">
+          Nothing new to add about {name} this time — their profile is already
+          up to date.
+        </p>
+      ) : (
+        <div className="mt-1">
+          <p className="text-sm text-indigo-800/80 dark:text-indigo-200/70">
+            Added to {name}&apos;s profile:
+          </p>
+          <ul className="mt-2 flex flex-col gap-1.5">
+            {(notes ?? []).map((n, i) => (
+              <li
+                key={i}
+                className="rounded-lg bg-white/70 px-3 py-1.5 text-sm text-indigo-900 dark:bg-indigo-900/30 dark:text-indigo-100"
+              >
+                {n}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }
