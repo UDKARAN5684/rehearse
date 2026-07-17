@@ -2,15 +2,204 @@
 @tailwind components;
 @tailwind utilities;
 
-html {
-  scroll-behavior: smooth;
+/* ============================================================
+   Monochrome editorial design system
+   ============================================================ */
+:root {
+  --white: #ffffff;
+  --gray-50: #f7f7f7;
+  --gray-100: #efefef;
+  --gray-200: #e0e0e0;
+  --gray-300: #c8c8c8;
+  --gray-400: #a0a0a0;
+  --gray-500: #787878;
+  --gray-600: #555555;
+  --gray-700: #333333;
+  --gray-800: #1a1a1a;
+  --gray-900: #0d0d0d;
+
+  /* semantic tokens (RGB triplets so Tailwind can add alpha) */
+  --bg: 255 255 255;
+  --surface: 255 255 255;
+  --surface-2: 247 247 247;
+  --border: 224 224 224;
+  --fg: 13 13 13;
+  --muted: 120 120 120;
+  --accent: 13 13 13; /* monochrome: near-black is the "accent" */
+  --accent-fg: 255 255 255;
+  --accent-soft: 239 239 239;
+  --marker: 13 13 13;
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-inout-expo: cubic-bezier(0.87, 0, 0.13, 1);
+
+  color-scheme: light;
 }
 
-/* Thin, unobtrusive scrollbars for the chat area */
+html {
+  scroll-behavior: auto; /* Lenis drives scrolling */
+}
+
+body {
+  background-color: var(--white);
+  color: var(--gray-900);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Lenis */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+/* ---- 12-column editorial grid ---- */
+.grid-12 {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 0 1.56vw;
+}
+.edge {
+  padding-left: 2.34vw;
+  padding-right: 2.34vw;
+}
+
+/* ---- Section label (uppercase, tracked) ---- */
+.eyebrow {
+  font-family: var(--font-body);
+  font-size: clamp(11px, 0.78vw, 13px);
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--gray-500);
+}
+
+/* ---- Display serif helpers ---- */
+.display {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 0.94;
+}
+
+/* ============================================================
+   Motion — masked line-rise reveals (IntersectionObserver adds .is-in)
+   ============================================================ */
+.reveal .rise {
+  display: block;
+  overflow: hidden;
+}
+.reveal .rise > * {
+  display: block;
+  transform: translateY(110%);
+  will-change: transform;
+}
+.reveal.is-in .rise > * {
+  transform: translateY(0);
+  transition: transform 1.5s var(--ease-inout-expo);
+}
+/* stagger up to 8 lines */
+.reveal.is-in .rise:nth-child(2) > * { transition-delay: 0.06s; }
+.reveal.is-in .rise:nth-child(3) > * { transition-delay: 0.12s; }
+.reveal.is-in .rise:nth-child(4) > * { transition-delay: 0.18s; }
+.reveal.is-in .rise:nth-child(5) > * { transition-delay: 0.24s; }
+.reveal.is-in .rise:nth-child(6) > * { transition-delay: 0.30s; }
+
+/* soft fade+rise */
+.reveal .fade {
+  opacity: 0;
+  transform: translateY(22px);
+  will-change: transform, opacity;
+}
+.reveal.is-in .fade {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 1.2s var(--ease-out-expo),
+    transform 1.2s var(--ease-out-expo);
+}
+.reveal.is-in .fade.d1 { transition-delay: 0.08s; }
+.reveal.is-in .fade.d2 { transition-delay: 0.16s; }
+.reveal.is-in .fade.d3 { transition-delay: 0.24s; }
+
+/* ---- wipe-in underline (works filter tabs / links) ---- */
+.wipe {
+  position: relative;
+}
+.wipe::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -0.15em;
+  height: 1px;
+  width: 100%;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: right center;
+  transition: transform 0.45s var(--ease-out-expo);
+}
+.wipe:hover::after,
+.wipe[data-active="true"]::after {
+  transform: scaleX(1);
+  transform-origin: left center;
+}
+
+/* thin editorial divider */
+.rule {
+  height: 1px;
+  background: var(--gray-200);
+}
+
+/* emphasized keyword — italic serif, editorial */
+.marker {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+}
+
+/* ---- Slim scrollbar (native fallback) ---- */
 .scrollbar-slim::-webkit-scrollbar {
   width: 8px;
 }
 .scrollbar-slim::-webkit-scrollbar-thumb {
-  background-color: rgba(120, 120, 120, 0.35);
+  background-color: rgb(var(--muted) / 0.3);
   border-radius: 9999px;
+}
+
+.caret::after {
+  content: "▍";
+  margin-left: 1px;
+  color: var(--gray-900);
+  animation: blink 1s step-end infinite;
+}
+
+.ink {
+  background-color: var(--gray-900);
+  color: var(--white);
+}
+
+.glass {
+  background-color: rgb(255 255 255 / 0.78);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal .rise > *,
+  .reveal .fade {
+    transform: none !important;
+    opacity: 1 !important;
+    transition: opacity 0.4s ease !important;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+  }
 }
