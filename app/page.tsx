@@ -40,22 +40,35 @@ import Composer from "@/components/Composer";
 import ReportCard from "@/components/ReportCard";
 import PremortemReportCard from "@/components/PremortemReportCard";
 import UsageBadge from "@/components/UsageBadge";
+import Logo from "@/components/Logo";
+import Icon, { categoryIcon } from "@/components/Icon";
+import Reveal from "@/components/Reveal";
+import Marquee from "@/components/landing/Marquee";
+import HowItWorks from "@/components/landing/HowItWorks";
+import TwoModes from "@/components/landing/TwoModes";
+import MemoryFeature from "@/components/landing/MemoryFeature";
+import SampleReport from "@/components/landing/SampleReport";
+import Benefits from "@/components/landing/Benefits";
+import UseCases from "@/components/landing/UseCases";
+import Faq from "@/components/landing/Faq";
+import FinalCta from "@/components/landing/FinalCta";
+import SiteFooter from "@/components/landing/SiteFooter";
 
 type View = "home" | "chat" | "report" | "people";
 
 const PREMORTEM_PERSONA = "Interviewer";
 
 const PRIMARY_BTN =
-  "inline-flex items-center justify-center rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 disabled:cursor-not-allowed disabled:opacity-50";
+  "inline-flex items-center justify-center gap-1.5 rounded-full bg-accent text-accent-fg shadow-glow-sm px-5 py-2.5 text-sm font-semibold transition-all hover:opacity-90 active:scale-[0.97] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-50";
 
 const GHOST_BTN =
-  "rounded-lg px-3 py-1.5 text-sm text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-100";
+  "rounded-full px-3.5 py-1.5 text-sm font-medium text-muted transition-colors hover:bg-surface-2 hover:text-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent";
 
 const SECONDARY_BTN =
-  "inline-flex items-center justify-center rounded-xl border border-neutral-300 bg-transparent px-4 py-2.5 text-sm font-medium text-neutral-700 transition hover:bg-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800";
+  "inline-flex items-center justify-center gap-1.5 rounded-full border border-border bg-surface px-5 py-2.5 text-sm font-semibold text-fg transition-all hover:border-fg/30 active:scale-[0.97] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-50";
 
 const FIELD_CLASS =
-  "w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm outline-none transition placeholder:text-neutral-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 disabled:opacity-50 dark:border-neutral-800 dark:bg-neutral-950 dark:placeholder:text-neutral-500 dark:focus:border-indigo-500 dark:focus:ring-indigo-950";
+  "w-full rounded-2xl border border-border bg-surface-2 px-3.5 py-2.5 text-sm text-fg outline-none transition-all placeholder:text-muted/70 focus:border-accent/60 focus:ring-2 focus:ring-accent/20 disabled:opacity-50";
 
 /** POST JSON and surface a useful error message on any non-2xx / bad body. */
 async function postJson<T>(url: string, body: unknown): Promise<T> {
@@ -525,35 +538,88 @@ export default function Page() {
   // ---- Render --------------------------------------------------------------
 
   return (
-    <main className="mx-auto flex min-h-[100dvh] w-full max-w-2xl flex-col px-4">
-      <header className="flex items-center justify-between border-b border-neutral-200/70 py-4 dark:border-neutral-800/70">
-        <button
-          onClick={requestLeave}
-          className="flex items-center gap-2 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 rounded-lg"
-          aria-label="Rehearse home"
-        >
-          <span className="text-xl" aria-hidden>
-            🎭
-          </span>
-          <span>
-            <span className="block text-sm font-semibold tracking-tight">
-              Rehearse
-            </span>
-            <span className="block text-xs text-neutral-500 dark:text-neutral-400">
-              Practice the conversations that scare you
-            </span>
-          </span>
-        </button>
-        {view !== "home" && (
-          <button onClick={requestLeave} className={GHOST_BTN}>
-            {view === "report" ? "New session" : "Exit"}
+    <main className="flex min-h-[100dvh] w-full flex-col">
+      <header className="sticky top-0 z-30 border-b border-border/70 glass">
+        <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-4 py-3.5">
+          <button
+            onClick={requestLeave}
+            className="rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            aria-label="Rehearse home"
+          >
+            <Logo />
           </button>
-        )}
+          <div className="flex items-center gap-6">
+            {view === "home" && (
+              <nav className="hidden items-center gap-6 sm:flex" aria-label="Site">
+                <a href="#start" className="eyebrow wipe text-[color:var(--gray-600)] hover:text-[color:var(--gray-900)]">
+                  Practice
+                </a>
+                <a href="#how" className="eyebrow wipe text-[color:var(--gray-600)] hover:text-[color:var(--gray-900)]">
+                  How
+                </a>
+                <a href="#faq" className="eyebrow wipe text-[color:var(--gray-600)] hover:text-[color:var(--gray-900)]">
+                  FAQ
+                </a>
+              </nav>
+            )}
+            {view !== "home" && (
+              <button onClick={requestLeave} className={GHOST_BTN}>
+                {view === "report" ? "New session" : "Exit"}
+              </button>
+            )}
+            <a href="#start" className={PRIMARY_BTN}>
+              Start
+              <Icon name="arrowRight" size={15} strokeWidth={2.25} />
+            </a>
+          </div>
+        </div>
       </header>
 
       {/* ---------------------------------------------------------------- HOME */}
       {view === "home" && (
-        <div className="flex flex-1 flex-col gap-6 py-6 pb-12">
+        <>
+          {/* Editorial hero — quiet tagline, then a massive bottom-anchored
+              display title that rises from behind an overflow mask. */}
+          <section className="edge flex min-h-[78vh] flex-col justify-between pb-2 pt-14 sm:min-h-[86vh]">
+            <Reveal className="grid-12">
+              <p className="rise col-span-12 sm:col-span-5">
+                <span className="text-[15px] leading-relaxed text-[color:var(--gray-700)] sm:text-base">
+                  The conversations that matter most are the ones we never
+                  practice.
+                </span>
+              </p>
+              <p className="rise col-span-12 mt-3 sm:col-span-5 sm:col-start-7 sm:mt-0">
+                <span className="text-[15px] leading-relaxed text-[color:var(--gray-500)] sm:text-base">
+                  Rehearse is a private stage — an AI plays the other person,
+                  pushes back like they would, and shows you exactly what to
+                  say better.
+                </span>
+              </p>
+            </Reveal>
+            <Reveal>
+              <h1 className="rise block w-full">
+                <span className="display block w-full text-center text-[19vw] uppercase leading-[0.92] tracking-[-0.03em] text-[color:var(--gray-900)] sm:text-[12.9vw]">
+                  Rehearse
+                </span>
+              </h1>
+              <div className="rise mt-4">
+                <div className="flex items-center justify-between border-t border-[color:var(--gray-200)] pt-3">
+                  <span className="eyebrow">Practice, privately</span>
+                  <a
+                    href="#start"
+                    className="eyebrow wipe inline-flex items-center gap-1.5 text-[color:var(--gray-900)]"
+                  >
+                    Begin <Icon name="arrowRight" size={13} strokeWidth={2} />
+                  </a>
+                </div>
+              </div>
+            </Reveal>
+          </section>
+
+          <div
+            id="start"
+            className="mx-auto flex w-full max-w-2xl scroll-mt-24 flex-col gap-6 px-4 py-16"
+          >
           <ModeTabs
             mode={mode}
             onChange={(m) => {
@@ -565,16 +631,21 @@ export default function Page() {
 
           {mode === "conversation" ? (
             <section className="flex flex-col gap-4">
-              <div>
-                <h1 className="text-2xl font-semibold tracking-tight">
-                  Rehearse a hard conversation
-                </h1>
-                <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-                  Pick a scenario. An AI plays the other person — and pushes
-                  back like they would. Practice, then get a candid report
-                  card.
+              <Reveal>
+                <span className="rise">
+                  <span className="eyebrow">Conversation</span>
+                </span>
+                <h2 className="rise mt-2">
+                  <span className="display text-3xl text-[color:var(--gray-900)] sm:text-4xl">
+                    Practice the <span className="marker">hard talk</span>
+                  </span>
+                </h2>
+                <p className="rise mt-3">
+                  <span className="max-w-sm text-[15px] text-muted">
+                    An AI plays the other person — and pushes back.
+                  </span>
                 </p>
-              </div>
+              </Reveal>
 
               <PersonSelect
                 people={people}
@@ -585,7 +656,7 @@ export default function Page() {
               />
 
               <div className="flex items-center justify-between">
-                <h2 className="text-sm font-medium text-neutral-600 dark:text-neutral-300">
+                <h2 className="text-xs font-bold uppercase tracking-widest text-muted">
                   Choose a scenario
                 </h2>
                 <UsageBadge used={used} limit={FREE_DAILY_LIMIT} />
@@ -594,7 +665,7 @@ export default function Page() {
               {atLimit && <LimitCallout used={used} />}
 
               {error && (
-                <p className="text-sm text-red-600 dark:text-red-400">
+                <p className="text-sm font-medium text-rose-500">
                   {error}
                 </p>
               )}
@@ -613,14 +684,14 @@ export default function Page() {
                     setError(null);
                   }}
                   disabled={atLimit}
-                  className="rounded-2xl border border-dashed border-neutral-300 p-4 text-left text-sm font-medium text-neutral-600 transition hover:border-indigo-400 hover:text-indigo-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-700 dark:text-neutral-300 dark:hover:border-indigo-500 dark:hover:text-indigo-400"
+                  className="flex items-center justify-center gap-2 rounded-2xl border border-dashed border-border p-3.5 text-sm font-medium text-muted transition-all hover:border-accent/50 hover:text-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  ✏️ Or describe your own situation →
+                  <Icon name="pencil" size={16} /> Describe your own
                 </button>
               ) : (
-                <div className="rounded-2xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+                <div className="animate-scale-in rounded-3xl border border-border bg-surface p-4 shadow-card">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-semibold">
+                    <h3 className="font-display text-base font-bold">
                       Describe your own conversation
                     </h3>
                     <button
@@ -669,20 +740,25 @@ export default function Page() {
               )}
             </section>
           ) : (
-            <section className="flex flex-col gap-4">
-              <div>
-                <h1 className="text-2xl font-semibold tracking-tight">
-                  Pre-mortem a big decision
-                </h1>
-                <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-                  State a decision you&apos;re weighing. We&apos;ll fast-forward
-                  two years, imagine it failed spectacularly, and interview you
-                  one dimension at a time to surface the real risks.
+            <section className="flex animate-fade-up flex-col gap-4">
+              <Reveal>
+                <span className="rise">
+                  <span className="eyebrow">Pre-Mortem</span>
+                </span>
+                <h2 className="rise mt-2">
+                  <span className="display text-3xl text-[color:var(--gray-900)] sm:text-4xl">
+                    Pre-mortem a <span className="marker">decision</span>
+                  </span>
+                </h2>
+                <p className="rise mt-3">
+                  <span className="max-w-sm text-[15px] text-muted">
+                    Imagine it already failed. Find out why — before you commit.
+                  </span>
                 </p>
-              </div>
+              </Reveal>
 
               <div className="flex items-center justify-between">
-                <h2 className="text-sm font-medium text-neutral-600 dark:text-neutral-300">
+                <h2 className="text-xs font-bold uppercase tracking-widest text-muted">
                   Your decision
                 </h2>
                 <UsageBadge used={used} limit={FREE_DAILY_LIMIT} />
@@ -694,13 +770,13 @@ export default function Page() {
                 value={decision}
                 onChange={(e) => setDecision(e.target.value)}
                 disabled={atLimit}
-                rows={4}
+                rows={3}
                 placeholder="e.g. Leave my stable job to start a company with a friend"
-                className="w-full resize-none rounded-2xl border border-neutral-200 bg-white p-4 text-sm outline-none transition placeholder:text-neutral-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 disabled:opacity-50 dark:border-neutral-800 dark:bg-neutral-900 dark:placeholder:text-neutral-500 dark:focus:border-indigo-500 dark:focus:ring-indigo-950"
+                className="w-full resize-none rounded-2xl border border-border bg-surface px-4 py-3 text-[15px] text-fg outline-none transition-all placeholder:text-muted/60 focus:border-accent/60 focus:shadow-glow-sm disabled:opacity-50"
               />
 
               {error && (
-                <p className="text-sm text-red-600 dark:text-red-400">
+                <p className="text-sm font-medium text-rose-500">
                   {error}
                 </p>
               )}
@@ -722,48 +798,58 @@ export default function Page() {
             onOpen={openSession}
             onDelete={removeSession}
           />
-        </div>
+          </div>
+
+          <Marquee />
+          <HowItWorks />
+          <TwoModes />
+          <MemoryFeature />
+          <SampleReport />
+          <Benefits />
+          <UseCases />
+          <Faq />
+          <FinalCta />
+          <SiteFooter />
+        </>
       )}
 
       {/* ---------------------------------------------------------------- CHAT */}
       {view === "chat" && session && (
-        <div className="flex min-h-0 flex-1 flex-col py-4">
+        <div className="mx-auto flex min-h-0 w-full max-w-2xl flex-1 flex-col px-4 py-4">
           {session.mode === "conversation" && scenario ? (
-            <div className="mb-3 rounded-2xl border border-neutral-200 bg-white p-3 dark:border-neutral-800 dark:bg-neutral-900">
+            <div className="mb-3 animate-fade-up rounded-3xl border border-border bg-surface p-3.5 shadow-card">
               <div className="flex items-center gap-3">
-                <span className="text-2xl" aria-hidden>
-                  {scenario.emoji}
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-accent-soft text-accent">
+                  <Icon name={categoryIcon(scenario.category)} size={18} />
                 </span>
                 <div className="min-w-0">
-                  <div className="truncate text-sm font-semibold">
+                  <div className="truncate text-sm font-semibold text-fg">
                     {scenario.title}
                   </div>
-                  <div className="truncate text-xs text-neutral-500 dark:text-neutral-400">
+                  <div className="truncate text-xs text-muted">
                     {personaName} · {personaRoleLabel}
                     {activePerson && (
-                      <span className="ml-1 text-indigo-500 dark:text-indigo-400">
+                      <span className="ml-1 font-semibold text-accent">
                         · from memory
                       </span>
                     )}
                   </div>
                 </div>
               </div>
-              <div className="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
-                <span className="font-medium text-neutral-600 dark:text-neutral-300">
-                  Your goal:
-                </span>{" "}
+              <div className="mt-2 text-xs text-muted">
+                <span className="font-semibold text-fg">Your goal:</span>{" "}
                 {scenario.userGoal}
               </div>
             </div>
           ) : (
-            <div className="mb-3 rounded-2xl border border-neutral-200 bg-white p-3 dark:border-neutral-800 dark:bg-neutral-900">
-              <div className="flex items-center gap-2 text-sm font-semibold">
-                <span className="text-lg" aria-hidden>
-                  🔮
+            <div className="mb-3 animate-fade-up rounded-3xl border border-border bg-surface p-3.5 shadow-card">
+              <div className="flex items-center gap-2 text-sm font-semibold text-fg">
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-accent-soft text-accent">
+                  <Icon name="target" size={18} />
                 </span>
                 Pre-mortem
               </div>
-              <p className="mt-1 line-clamp-2 text-xs text-neutral-500 dark:text-neutral-400">
+              <p className="mt-1 line-clamp-2 text-xs text-muted">
                 {session.decision}
               </p>
             </div>
@@ -780,8 +866,8 @@ export default function Page() {
           <div className="pt-3">
             {finishing ? (
               <div className="flex flex-col items-center justify-center gap-3 py-8">
-                <span className="h-6 w-6 animate-spin rounded-full border-2 border-neutral-300 border-t-indigo-600 dark:border-neutral-700 dark:border-t-indigo-400" />
-                <p className="text-sm text-neutral-500 dark:text-neutral-400">
+                <span className="h-7 w-7 animate-spin rounded-full border-2 border-border border-t-accent" />
+                <p className="text-sm text-muted">
                   {session.mode === "conversation"
                     ? "Grading your rehearsal…"
                     : "Building your risk map…"}
@@ -790,7 +876,7 @@ export default function Page() {
             ) : (
               <div className="space-y-2">
                 {error && (
-                  <p className="text-sm text-red-600 dark:text-red-400">
+                  <p className="text-sm font-medium text-rose-500">
                     {error}
                   </p>
                 )}
@@ -804,7 +890,7 @@ export default function Page() {
                   }
                 />
                 <div className="flex items-center justify-between gap-3">
-                  <span className="text-xs text-neutral-500 dark:text-neutral-400">
+                  <span className="text-xs text-muted">
                     {session.mode === "conversation"
                       ? "Talk like you would in real life."
                       : "The failures you name become your risk map."}
@@ -827,7 +913,7 @@ export default function Page() {
 
       {/* -------------------------------------------------------------- REPORT */}
       {view === "report" && session && (
-        <div className="flex-1 py-6 pb-12">
+        <div className="mx-auto w-full max-w-2xl flex-1 px-4 py-6 pb-12">
           {session.mode === "conversation" && session.report ? (
             <div className="flex flex-col gap-4">
               <ReportCard report={session.report} onRestart={goHome} />
@@ -853,8 +939,8 @@ export default function Page() {
               <ShareBar session={session} />
             </div>
           ) : (
-            <div className="rounded-2xl border border-neutral-200 bg-white p-6 text-center dark:border-neutral-800 dark:bg-neutral-900">
-              <p className="text-sm text-neutral-500 dark:text-neutral-400">
+            <div className="rounded-3xl border border-border bg-surface p-6 text-center shadow-card">
+              <p className="text-sm text-muted">
                 This report isn&apos;t available.
               </p>
               <button onClick={goHome} className={`${PRIMARY_BTN} mt-4`}>
@@ -867,33 +953,35 @@ export default function Page() {
 
       {/* -------------------------------------------------------------- PEOPLE */}
       {view === "people" && (
-        <PeopleManager
-          people={people}
-          onSave={(p) => {
-            savePerson(p);
-            setPeople(listPeople());
-          }}
-          onDelete={(id) => {
-            deletePerson(id);
-            setPeople(listPeople());
-            if (selectedPersonId === id) setSelectedPersonId(null);
-          }}
-          onBack={() => setView("home")}
-        />
+        <div className="mx-auto w-full max-w-2xl px-4">
+          <PeopleManager
+            people={people}
+            onSave={(p) => {
+              savePerson(p);
+              setPeople(listPeople());
+            }}
+            onDelete={(id) => {
+              deletePerson(id);
+              setPeople(listPeople());
+              if (selectedPersonId === id) setSelectedPersonId(null);
+            }}
+            onBack={() => setView("home")}
+          />
+        </div>
       )}
 
       {confirmingLeave && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+          className="fixed inset-0 z-50 flex animate-fade-in items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
           role="dialog"
           aria-modal="true"
           aria-label="Leave this rehearsal?"
         >
-          <div className="w-full max-w-sm rounded-2xl border border-neutral-200 bg-white p-5 shadow-xl dark:border-neutral-800 dark:bg-neutral-900">
-            <h2 className="text-base font-semibold text-neutral-900 dark:text-neutral-100">
+          <div className="w-full max-w-sm animate-scale-in rounded-3xl border border-border bg-surface p-5 shadow-glow">
+            <h2 className="font-display text-lg font-bold text-fg">
               Leave this rehearsal?
             </h2>
-            <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+            <p className="mt-1 text-sm text-muted">
               You haven&apos;t ended it, so it won&apos;t be graded — and an
               unfinished rehearsal can&apos;t be resumed.
             </p>
@@ -932,8 +1020,8 @@ function RecentSessions({
 }) {
   if (sessions.length === 0) return null;
   return (
-    <section className="flex flex-col gap-3 border-t border-neutral-200/70 pt-6 dark:border-neutral-800/70">
-      <h2 className="text-sm font-medium text-neutral-600 dark:text-neutral-300">
+    <section className="flex flex-col gap-3 border-t border-border/70 pt-6">
+      <h2 className="text-xs font-bold uppercase tracking-widest text-muted">
         Recent sessions
       </h2>
       <ul className="flex flex-col gap-2">
@@ -943,7 +1031,7 @@ function RecentSessions({
             ? s.customScenario ?? SCENARIOS.find((x) => x.id === s.scenarioId)
             : undefined;
           const title = conv ? sc?.title ?? "Conversation" : "Pre-mortem";
-          const emoji = conv ? sc?.emoji ?? "🎭" : "🔮";
+          const iconName = conv ? categoryIcon(sc?.category ?? "") : "target";
           const subtitle = conv ? undefined : s.decision;
           const badge = conv
             ? s.report
@@ -955,35 +1043,35 @@ function RecentSessions({
           return (
             <li
               key={s.id}
-              className="flex items-center gap-2 rounded-xl border border-neutral-200 bg-white p-3 dark:border-neutral-800 dark:bg-neutral-900"
+              className="flex items-center gap-2 rounded-2xl border border-border bg-surface p-3 shadow-card transition-all hover:-translate-y-0.5 hover:shadow-glow-sm"
             >
               <button
                 onClick={() => onOpen(s.id)}
-                className="flex min-w-0 flex-1 items-center gap-3 rounded-lg text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+                className="flex min-w-0 flex-1 items-center gap-3 rounded-lg text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               >
-                <span className="text-xl" aria-hidden>
-                  {emoji}
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-surface-2 text-muted">
+                  <Icon name={iconName} size={17} />
                 </span>
                 <span className="min-w-0">
-                  <span className="block truncate text-sm font-medium">
+                  <span className="block truncate text-sm font-semibold text-fg">
                     {title}
                   </span>
                   {subtitle && (
-                    <span className="block truncate text-xs text-neutral-500 dark:text-neutral-400">
+                    <span className="block truncate text-xs text-muted">
                       {subtitle}
                     </span>
                   )}
                 </span>
               </button>
               {badge && (
-                <span className="shrink-0 rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium capitalize text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300">
+                <span className="shrink-0 rounded-full bg-surface-2 px-2.5 py-0.5 text-xs font-semibold capitalize text-muted">
                   {badge}
                 </span>
               )}
               <button
                 onClick={() => onDelete(s.id)}
                 aria-label={`Delete ${title} session`}
-                className="shrink-0 rounded-lg px-2 py-1 text-sm text-neutral-400 transition hover:bg-red-50 hover:text-red-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400 dark:hover:bg-red-950/40 dark:hover:text-red-400"
+                className="shrink-0 rounded-lg px-2 py-1 text-sm text-muted transition-colors hover:bg-rose-500/10 hover:text-rose-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
               >
                 ✕
               </button>
@@ -1057,19 +1145,15 @@ function ShareBar({
   return (
     <div className="flex flex-wrap items-center justify-center gap-2">
       <button onClick={copy} className={SECONDARY_BTN}>
-        {copied ? "Copied ✓" : "Copy summary"}
+        <Icon name={copied ? "check" : "copy"} size={16} className="mr-1.5" />
+        {copied ? "Copied" : "Copy"}
       </button>
-      <a
-        href={ogUrl}
-        target="_blank"
-        rel="noreferrer"
-        className={SECONDARY_BTN}
-      >
-        Save image
+      <a href={ogUrl} target="_blank" rel="noreferrer" className={SECONDARY_BTN}>
+        <Icon name="image" size={16} className="mr-1.5" /> Image
       </a>
       {canShare && (
         <button onClick={share} className={SECONDARY_BTN}>
-          Share
+          <Icon name="share" size={16} className="mr-1.5" /> Share
         </button>
       )}
     </div>
@@ -1078,11 +1162,11 @@ function ShareBar({
 
 function LimitCallout({ used }: { used: number }) {
   return (
-    <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5 dark:border-amber-900/50 dark:bg-amber-950/30">
-      <div className="text-sm font-medium text-amber-900 dark:text-amber-200">
+    <div className="animate-scale-in rounded-3xl border border-amber-400/30 bg-amber-500/10 p-5">
+      <div className="font-display text-sm font-bold text-amber-600 dark:text-amber-300">
         You&apos;ve hit today&apos;s free limit
       </div>
-      <p className="mt-1 text-sm text-amber-800/80 dark:text-amber-200/70">
+      <p className="mt-1 text-sm text-amber-700/90 dark:text-amber-200/70">
         You&apos;ve used all {FREE_DAILY_LIMIT} free rehearsals for today. Come
         back tomorrow to keep practicing.
       </p>
@@ -1108,40 +1192,38 @@ function RememberPanel({
 }) {
   const isLoading = loading || (notes === null && !error);
   return (
-    <div className="rounded-2xl border border-indigo-200 bg-indigo-50/60 p-5 dark:border-indigo-900/50 dark:bg-indigo-950/30">
-      <div className="text-sm font-semibold text-indigo-900 dark:text-indigo-200">
-        🧠 Remembering {name} for next time
+    <div className="animate-scale-in rounded-3xl border border-accent/25 bg-accent-soft p-5">
+      <div className="flex items-center gap-2 text-sm font-semibold text-accent">
+        <Icon name="spark" size={16} /> Remembering {name}
       </div>
       {isLoading ? (
-        <div className="mt-2 flex items-center gap-2 text-sm text-indigo-800/80 dark:text-indigo-200/70">
-          <span className="h-4 w-4 animate-spin rounded-full border-2 border-indigo-300 border-t-indigo-600 dark:border-indigo-800 dark:border-t-indigo-400" />
+        <div className="mt-2 flex items-center gap-2 text-sm text-fg/80">
+          <span className="h-4 w-4 animate-spin rounded-full border-2 border-accent/30 border-t-accent" />
           Saving what the AI just learned about {name}…
         </div>
       ) : error ? (
         <>
-          <p className="mt-1 text-sm text-red-600 dark:text-red-400">{error}</p>
+          <p className="mt-1 text-sm font-medium text-rose-500">{error}</p>
           <button
             onClick={onRemember}
-            className="mt-3 inline-flex items-center justify-center rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+            className="mt-3 inline-flex items-center justify-center rounded-full bg-accent text-accent-fg shadow-glow-sm px-5 py-2.5 text-sm font-semibold transition-all hover:opacity-90 active:scale-[0.97] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
             Try again
           </button>
         </>
       ) : notes && notes.length === 0 ? (
-        <p className="mt-1 text-sm text-indigo-800/80 dark:text-indigo-200/70">
+        <p className="mt-1 text-sm text-fg/80">
           Nothing new to add about {name} this time — their profile is already
           up to date.
         </p>
       ) : (
         <div className="mt-1">
-          <p className="text-sm text-indigo-800/80 dark:text-indigo-200/70">
-            Added to {name}&apos;s profile:
-          </p>
+          <p className="text-sm text-fg/80">Added to {name}&apos;s profile:</p>
           <ul className="mt-2 flex flex-col gap-1.5">
             {(notes ?? []).map((n, i) => (
               <li
                 key={i}
-                className="rounded-lg bg-white/70 px-3 py-1.5 text-sm text-indigo-900 dark:bg-indigo-900/30 dark:text-indigo-100"
+                className="rounded-xl bg-surface/70 px-3 py-1.5 text-sm text-fg"
               >
                 {n}
               </li>
