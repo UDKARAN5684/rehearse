@@ -19,28 +19,28 @@ export default function MessageBubble({
       new Date(message.ts).toLocaleTimeString([], {
         hour: "numeric",
         minute: "2-digit",
-      })
+      }),
     );
   }, [message.ts]);
 
   return (
-    <div className={`flex flex-col ${isUser ? "items-end" : "items-start"}`}>
-      <span className="mb-1 px-1 text-xs font-medium text-neutral-500 dark:text-neutral-400">
+    <div
+      className={`flex animate-bubble-in flex-col ${isUser ? "items-end" : "items-start"}`}
+    >
+      <span className="mb-1 px-1 text-xs font-semibold text-muted">
         {isUser ? "You" : personaName}
       </span>
       <div
         className={[
-          "max-w-[85%] whitespace-pre-wrap break-words rounded-2xl px-4 py-2.5 text-sm leading-relaxed shadow-sm sm:max-w-[75%]",
+          "max-w-[85%] whitespace-pre-wrap break-words rounded-3xl px-4 py-2.5 text-[15px] leading-relaxed sm:max-w-[78%]",
           isUser
-            ? "rounded-br-md bg-indigo-600 text-white"
-            : "rounded-bl-md border border-neutral-200 bg-white text-neutral-800 dark:border-neutral-800 dark:bg-neutral-800 dark:text-neutral-100",
+            ? "rounded-br-lg bg-accent text-accent-fg shadow-glow-sm"
+            : "rounded-bl-lg border border-border bg-surface text-fg shadow-sm",
         ].join(" ")}
       >
         {message.content}
       </div>
-      <span className="mt-1 h-4 px-1 text-[11px] text-neutral-500 dark:text-neutral-400">
-        {time}
-      </span>
+      <span className="mt-1 h-4 px-1 text-[11px] text-muted/70">{time}</span>
     </div>
   );
 }

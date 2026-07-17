@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Icon from "@/components/Icon";
 
 export default function Composer({
   onSend,
@@ -45,7 +46,7 @@ export default function Composer({
   const canSend = text.trim().length > 0 && !disabled;
 
   return (
-    <div className="flex items-end gap-2 rounded-2xl border border-neutral-200 bg-white p-2 shadow-sm transition-colors focus-within:border-indigo-400 focus-within:ring-2 focus-within:ring-indigo-500/20 dark:border-neutral-800 dark:bg-neutral-900">
+    <div className="flex items-end gap-2 rounded-3xl border border-border bg-surface p-2 shadow-card transition-all focus-within:border-accent/60 focus-within:shadow-glow-sm">
       <label htmlFor="composer-input" className="sr-only">
         Your message
       </label>
@@ -58,17 +59,17 @@ export default function Composer({
         onKeyDown={onKeyDown}
         disabled={disabled}
         placeholder={placeholder ?? "Type your reply…"}
-        className="max-h-40 min-h-[2.5rem] flex-1 resize-none bg-transparent px-2 py-2 text-sm text-neutral-900 outline-none placeholder:text-neutral-400 disabled:cursor-not-allowed disabled:opacity-50 dark:text-neutral-100 dark:placeholder:text-neutral-500"
+        className="max-h-40 min-h-[2.5rem] flex-1 resize-none bg-transparent px-2.5 py-2 text-[15px] text-fg outline-none placeholder:text-muted/70 disabled:cursor-not-allowed disabled:opacity-50"
       />
       <button
         type="button"
         onClick={submit}
         disabled={!canSend}
         aria-label="Send message"
-        className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-xl bg-indigo-600 px-4 text-sm font-medium text-white transition-colors hover:bg-indigo-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40 dark:focus-visible:ring-offset-neutral-950"
+        className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full bg-accent text-accent-fg shadow-glow-sm px-4 text-sm font-semibold transition-all hover:opacity-90 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-40"
       >
         <span>Send</span>
-        <span aria-hidden="true">↑</span>
+        <Icon name="arrowRight" size={15} strokeWidth={2.25} />
       </button>
     </div>
   );

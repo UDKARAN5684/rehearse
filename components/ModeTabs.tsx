@@ -1,10 +1,11 @@
 "use client";
 
 import type { Mode } from "@/lib/types";
+import Icon from "@/components/Icon";
 
-const TABS: { value: Mode; label: string; emoji: string }[] = [
-  { value: "conversation", label: "Conversation", emoji: "💬" },
-  { value: "premortem", label: "Pre-Mortem", emoji: "🔮" },
+const TABS: { value: Mode; label: string; icon: string }[] = [
+  { value: "conversation", label: "Conversation", icon: "chat" },
+  { value: "premortem", label: "Pre-Mortem", icon: "target" },
 ];
 
 export default function ModeTabs({
@@ -14,12 +15,26 @@ export default function ModeTabs({
   mode: Mode;
   onChange: (m: Mode) => void;
 }) {
+  const activeIndex = Math.max(
+    0,
+    TABS.findIndex((t) => t.value === mode),
+  );
+
   return (
     <div
       role="tablist"
       aria-label="Choose a mode"
-      className="inline-flex w-full items-center gap-1 rounded-2xl border border-neutral-200 bg-white p-1 dark:border-neutral-800 dark:bg-neutral-900 sm:w-auto"
+      className="relative grid grid-cols-2 gap-1 rounded-2xl border border-border bg-surface-2 p-1"
     >
+      <span
+        aria-hidden
+        className="absolute inset-y-1 left-1 rounded-xl bg-surface shadow-sm ring-1 ring-border transition-transform duration-300"
+        style={{
+          width: "calc(50% - 0.25rem)",
+          transform: `translateX(${activeIndex * 100}%)`,
+          transitionTimingFunction: "cubic-bezier(.21,1.02,.73,1)",
+        }}
+      />
       {TABS.map((tab) => {
         const active = tab.value === mode;
         return (
@@ -30,13 +45,11 @@ export default function ModeTabs({
             aria-selected={active}
             onClick={() => onChange(tab.value)}
             className={[
-              "flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 sm:flex-none",
-              active
-                ? "bg-indigo-600 text-white shadow-sm"
-                : "text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800",
+              "relative z-10 flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent",
+              active ? "text-fg" : "text-muted hover:text-fg",
             ].join(" ")}
           >
-            <span aria-hidden="true">{tab.emoji}</span>
+            <Icon name={tab.icon} size={17} className={active ? "text-accent" : ""} />
             <span>{tab.label}</span>
           </button>
         );

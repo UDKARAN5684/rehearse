@@ -41,18 +41,18 @@ export default function ChatWindow({
           ))}
 
         {loading && (
-          <div className="flex flex-col items-start">
-            <span className="mb-1 px-1 text-xs font-medium text-neutral-500 dark:text-neutral-400">
+          <div className="flex animate-bubble-in flex-col items-start">
+            <span className="mb-1 px-1 text-xs font-semibold text-muted">
               {personaName}
             </span>
             <div
-              className="flex items-center gap-1.5 rounded-2xl rounded-bl-md border border-neutral-200 bg-white px-4 py-3 shadow-sm dark:border-neutral-800 dark:bg-neutral-800"
+              className="flex items-center gap-1.5 rounded-3xl rounded-bl-lg border border-border bg-surface px-4 py-3.5 shadow-sm"
               role="status"
               aria-label={`${personaName} is typing`}
             >
-              <span className="h-2 w-2 animate-bounce rounded-full bg-neutral-400 [animation-delay:-0.3s] dark:bg-neutral-500" />
-              <span className="h-2 w-2 animate-bounce rounded-full bg-neutral-400 [animation-delay:-0.15s] dark:bg-neutral-500" />
-              <span className="h-2 w-2 animate-bounce rounded-full bg-neutral-400 dark:bg-neutral-500" />
+              <span className="h-2 w-2 animate-bounce rounded-full bg-accent [animation-delay:-0.3s]" />
+              <span className="h-2 w-2 animate-bounce rounded-full bg-accent [animation-delay:-0.15s]" />
+              <span className="h-2 w-2 animate-bounce rounded-full bg-accent" />
             </div>
           </div>
         )}

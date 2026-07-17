@@ -13,10 +13,10 @@ export default function UsageBadge({
   const low = remaining <= 1 && !depleted;
 
   const tone = depleted
-    ? "border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-300"
+    ? "border-rose-300/60 bg-rose-500/10 text-rose-600 dark:border-rose-500/30 dark:text-rose-300"
     : low
-      ? "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300"
-      : "border-neutral-200 bg-white text-neutral-600 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-300";
+      ? "border-amber-300/60 bg-amber-500/10 text-amber-600 dark:border-amber-500/30 dark:text-amber-300"
+      : "border-border bg-surface-2 text-muted";
 
   const dot = depleted
     ? "bg-rose-500"

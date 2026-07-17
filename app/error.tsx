@@ -3,6 +3,7 @@
 // off-spec model response that slips past the guards) shows this recoverable
 // fallback instead of Next's blank "client-side exception" screen.
 import { useEffect } from "react";
+import Icon from "@/components/Icon";
 
 export default function Error({
   error,
@@ -18,26 +19,27 @@ export default function Error({
 
   return (
     <main className="mx-auto flex min-h-[100dvh] w-full max-w-md flex-col items-center justify-center gap-4 px-6 text-center">
-      <div className="text-4xl" aria-hidden>
-        😵‍💫
+      <div
+        className="grid h-14 w-14 place-items-center rounded-2xl bg-surface-2 text-muted"
+        aria-hidden
+      >
+        <Icon name="alert" size={26} />
       </div>
-      <h1 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
-        Something went sideways
-      </h1>
-      <p className="text-sm text-neutral-500 dark:text-neutral-400">
+      <h1 className="text-xl font-semibold text-fg">Something went sideways</h1>
+      <p className="text-sm text-muted">
         The app hit an unexpected error. Your saved people and past sessions are
         safe on this device.
       </p>
       <div className="mt-1 flex items-center gap-2">
         <button
           onClick={reset}
-          className="rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+          className="rounded-full bg-accent text-accent-fg shadow-glow-sm px-5 py-2.5 text-sm font-semibold transition-all hover:opacity-90 active:scale-[0.97] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         >
           Try again
         </button>
         <a
           href="/"
-          className="rounded-xl border border-neutral-300 px-4 py-2.5 text-sm font-medium text-neutral-700 transition hover:bg-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800"
+          className="rounded-full border border-border bg-surface px-5 py-2.5 text-sm font-semibold text-fg transition-all hover:border-fg/30 active:scale-[0.97] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         >
           Back to home
         </a>
