@@ -57,7 +57,7 @@ export async function POST(req: Request): Promise<Response> {
 
     const scenario: Scenario = {
       id: "custom",
-      emoji: str(raw.emoji, "✏️"),
+      emoji: "", // not displayed — the UI uses category line-icons, not emoji
       title: str(raw.title, "Your conversation"),
       category: "Custom",
       blurb: str(raw.blurb, ""),
