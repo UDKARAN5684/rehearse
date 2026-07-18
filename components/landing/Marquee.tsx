@@ -66,7 +66,7 @@ function Track({ ariaHidden }: { ariaHidden?: boolean }) {
 export default function Marquee() {
   return (
     <section className="w-full overflow-hidden py-8 sm:py-10">
-      <div className="mx-auto mb-6 w-full max-w-4xl px-4">
+      <div className="mx-auto mb-6 w-full max-w-6xl px-4">
         <div className="flex items-center justify-center gap-2">
           <motion.span
             className="text-accent"

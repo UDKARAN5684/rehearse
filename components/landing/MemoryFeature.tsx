@@ -46,7 +46,7 @@ const notes: Note[] = [
 export default function MemoryFeature() {
   return (
     <section className="w-full py-16 sm:py-20">
-      <div className="mx-auto grid w-full max-w-4xl grid-cols-1 items-center gap-10 px-4 md:grid-cols-2 md:gap-12">
+      <div className="mx-auto grid w-full max-w-6xl grid-cols-1 items-center gap-10 px-4 md:grid-cols-2 md:gap-12">
         {/* LEFT — copy */}
         <motion.div
           initial={{ opacity: 0, y: 24 }}

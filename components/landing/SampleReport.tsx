@@ -105,7 +105,7 @@ function ScoreRing() {
 export default function SampleReport() {
   return (
     <section className="w-full py-16 sm:py-20">
-      <div className="mx-auto w-full max-w-4xl px-4">
+      <div className="mx-auto w-full max-w-6xl px-4">
         {/* Heading */}
         <motion.div
           initial={{ opacity: 0, y: 24 }}

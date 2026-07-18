@@ -34,7 +34,7 @@ export default function SiteFooter() {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: "-80px" }}
         transition={{ type: "spring", stiffness: 200, damping: 24 }}
-        className="mx-auto w-full max-w-4xl px-4"
+        className="mx-auto w-full max-w-6xl px-4"
       >
         <div className="flex flex-col items-start gap-8 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-col gap-3">

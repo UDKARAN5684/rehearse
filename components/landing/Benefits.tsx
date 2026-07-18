@@ -75,7 +75,7 @@ export default function Benefits() {
         transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
       />
 
-      <div className="relative mx-auto w-full max-w-4xl px-4">
+      <div className="relative mx-auto w-full max-w-6xl px-4">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}

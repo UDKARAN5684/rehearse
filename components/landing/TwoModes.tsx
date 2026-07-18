@@ -91,7 +91,7 @@ export default function TwoModes() {
         transition={{ duration: 16, repeat: Infinity, ease: "easeInOut" }}
       />
 
-      <div className="relative mx-auto w-full max-w-4xl px-4">
+      <div className="relative mx-auto w-full max-w-6xl px-4">
         {/* header */}
         <motion.div
           className="mx-auto max-w-2xl text-center"

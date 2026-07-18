@@ -28,7 +28,7 @@ const reassurances = [
 export default function FinalCta() {
   return (
     <section className="py-16 sm:py-20">
-      <div className="mx-auto w-full max-w-4xl px-4">
+      <div className="mx-auto w-full max-w-5xl px-4">
         <motion.div
           initial={{ opacity: 0, y: 32 }}
           whileInView={{ opacity: 1, y: 0 }}

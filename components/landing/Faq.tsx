@@ -79,7 +79,7 @@ export default function Faq() {
         transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
       />
 
-      <div className="relative mx-auto w-full max-w-4xl px-4">
+      <div className="relative mx-auto w-full max-w-5xl px-4">
         {/* header */}
         <motion.div
           initial={{ opacity: 0, y: 24 }}
