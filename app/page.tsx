@@ -53,19 +53,20 @@ import UseCases from "@/components/landing/UseCases";
 import Faq from "@/components/landing/Faq";
 import FinalCta from "@/components/landing/FinalCta";
 import SiteFooter from "@/components/landing/SiteFooter";
+import BottomNav from "@/components/BottomNav";
 
 type View = "home" | "chat" | "report" | "people";
 
 const PREMORTEM_PERSONA = "Interviewer";
 
 const PRIMARY_BTN =
-  "inline-flex items-center justify-center gap-1.5 rounded-full bg-[color:var(--gray-900)] text-white px-5 py-2.5 text-sm font-semibold tracking-tight transition-all hover:bg-[color:var(--gray-700)] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--white)] disabled:cursor-not-allowed disabled:opacity-50";
+  "inline-flex items-center justify-center gap-1.5 rounded-full bg-[color:var(--gray-900)] text-white px-6 py-3 text-sm font-semibold tracking-tight shadow-btn transition-all hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--white)] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0";
 
 const GHOST_BTN =
   "rounded-full px-3.5 py-1.5 text-sm font-medium text-muted transition-colors hover:bg-surface-2 hover:text-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent";
 
 const SECONDARY_BTN =
-  "inline-flex items-center justify-center gap-1.5 rounded-full border border-[color:var(--gray-300)] bg-white px-5 py-2.5 text-sm font-semibold text-fg transition-colors hover:border-[color:var(--gray-900)] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-50";
+  "inline-flex items-center justify-center gap-1.5 rounded-full bg-white px-6 py-3 text-sm font-semibold text-fg shadow-btn-light transition-all hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-50";
 
 const FIELD_CLASS =
   "w-full rounded-xl border border-[color:var(--gray-300)] bg-white px-3.5 py-2.5 text-sm text-fg outline-none transition-colors placeholder:text-[color:var(--gray-400)] focus:border-[color:var(--gray-900)] disabled:opacity-50";
@@ -830,6 +831,7 @@ export default function Page() {
           <Faq />
           <FinalCta />
           <SiteFooter />
+          <BottomNav />
         </>
       )}
 

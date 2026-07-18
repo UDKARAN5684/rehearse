@@ -13,22 +13,22 @@
   --gray-300: #c8c8c8;
   --gray-400: #a0a0a0;
   --gray-500: #6a6a6a;
-  --gray-600: #555555;
-  --gray-700: #333333;
-  --gray-800: #1a1a1a;
-  --gray-900: #0d0d0d;
+  --gray-600: #4a5560;
+  --gray-700: #273C46;
+  --gray-800: #0D212C;
+  --gray-900: #051A24;
 
   /* semantic tokens (RGB triplets so Tailwind can add alpha) */
   --bg: 255 255 255;
   --surface: 255 255 255;
   --surface-2: 247 247 247;
   --border: 224 224 224;
-  --fg: 13 13 13;
-  --muted: 106 106 106;
-  --accent: 13 13 13; /* monochrome: near-black is the "accent" */
+  --fg: 5 26 36;
+  --muted: 100 108 114;
+  --accent: 5 26 36; /* Viktor Oddy near-black teal-navy is the "accent" */
   --accent-fg: 255 255 255;
-  --accent-soft: 239 239 239;
-  --marker: 13 13 13;
+  --accent-soft: 237 241 243;
+  --marker: 5 26 36;
 
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-inout-expo: cubic-bezier(0.87, 0, 0.13, 1);
