@@ -1,7 +1,9 @@
 "use client";
-// Compact control on the conversation home: choose whether to practice with a
-// generic persona or as one of your saved real people.
+// Editorial control on the conversation home: choose whether to practice with a
+// generic persona or as one of your saved real people. Reads as a masthead
+// choice on a hairline, not a boxed form field.
 import type { Person } from "@/lib/types";
+import Icon from "@/components/Icon";
 
 interface PersonSelectProps {
   people: Person[];
@@ -19,46 +21,57 @@ export default function PersonSelect({
   disabled,
 }: PersonSelectProps) {
   const selected = people.find((p) => p.id === selectedId) ?? null;
+  const hasPeople = people.length > 0;
 
   return (
-    <div className="rounded-3xl border border-border bg-surface p-4 shadow-card">
+    <div className="flex flex-col gap-4 border-t border-[color:var(--gray-200)] pt-4">
       <div className="flex items-center justify-between gap-3">
         <label
           htmlFor="person-select"
-          className="text-sm font-semibold text-fg"
+          className="text-xs font-bold uppercase tracking-widest text-muted"
         >
-          Who are you talking to?
+          Who you&rsquo;re talking to
         </label>
         <button
           type="button"
           onClick={onManage}
-          className="rounded-lg px-2.5 py-1 text-xs font-semibold text-accent transition-colors hover:bg-accent-soft focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          className="wipe inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-[color:var(--gray-900)] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--white)]"
         >
-          {people.length > 0 ? "Manage people" : "+ Add a real person"}
+          {hasPeople ? "Manage people" : "Add a real person"}
+          <Icon
+            name={hasPeople ? "users" : "arrowRight"}
+            size={13}
+            strokeWidth={2}
+          />
         </button>
       </div>
 
-      <div className="mt-2.5">
+      <div className="relative">
         <select
           id="person-select"
           value={selectedId ?? ""}
           disabled={disabled}
           onChange={(e) => onSelect(e.target.value || null)}
-          className="w-full rounded-2xl border border-border bg-surface-2 px-3.5 py-2.5 text-sm text-fg outline-none transition-all focus:border-accent/60 focus:ring-2 focus:ring-accent/20 disabled:opacity-50"
+          className="w-full cursor-pointer appearance-none border-b border-[color:var(--gray-300)] bg-transparent py-2 pr-8 font-display text-xl tracking-tight text-[color:var(--gray-900)] outline-none transition-colors hover:border-[color:var(--gray-500)] focus-visible:border-[color:var(--gray-900)] disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <option value="">Just practice (generic person)</option>
+          <option value="">Just practice &mdash; a generic person</option>
           {people.map((p) => (
             <option key={p.id} value={p.id}>
               {p.name} · {p.relationship}
             </option>
           ))}
         </select>
+        <Icon
+          name="chevronDown"
+          size={18}
+          className="pointer-events-none absolute right-1 top-1/2 -translate-y-1/2 text-[color:var(--gray-500)]"
+        />
       </div>
 
-      <p className="mt-2 text-xs text-muted">
+      <p className="text-sm text-muted">
         {selected
           ? `The AI plays ${selected.name} and learns from each session.`
-          : "Add a real person and the AI will play them."}
+          : "Add a real person and the AI will play them, not a generic stand-in."}
       </p>
     </div>
   );

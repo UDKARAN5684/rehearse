@@ -598,19 +598,21 @@ export default function Page() {
             </Reveal>
             <Reveal>
               <h1 className="rise block w-full">
-                <span className="display block w-full text-center text-[19vw] uppercase leading-[0.92] tracking-[-0.03em] text-[color:var(--gray-900)] sm:text-[12.9vw]">
+                <span className="display block w-full text-center text-[15.5vw] uppercase leading-[0.92] tracking-[-0.03em] text-[color:var(--gray-900)] sm:text-[12.9vw]">
                   Rehearse
                 </span>
               </h1>
               <div className="rise mt-4">
-                <div className="flex items-center justify-between border-t border-[color:var(--gray-200)] pt-3">
-                  <span className="eyebrow">Practice, privately</span>
-                  <a
-                    href="#start"
-                    className="eyebrow wipe inline-flex items-center gap-1.5 text-[color:var(--gray-900)]"
-                  >
-                    Begin <Icon name="arrowRight" size={13} strokeWidth={2} />
-                  </a>
+                <div>
+                  <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t border-[color:var(--gray-200)] pt-3">
+                    <span className="eyebrow">Practice, privately</span>
+                    <a
+                      href="#start"
+                      className="eyebrow wipe inline-flex items-center gap-1.5 text-[color:var(--gray-900)]"
+                    >
+                      Begin <Icon name="arrowRight" size={13} strokeWidth={2} />
+                    </a>
+                  </div>
                 </div>
               </div>
             </Reveal>
@@ -632,10 +634,7 @@ export default function Page() {
           {mode === "conversation" ? (
             <section className="flex flex-col gap-4">
               <Reveal>
-                <span className="rise">
-                  <span className="eyebrow">Conversation</span>
-                </span>
-                <h2 className="rise mt-2">
+                <h2 className="rise">
                   <span className="display text-3xl text-[color:var(--gray-900)] sm:text-4xl">
                     Practice the <span className="marker">hard talk</span>
                   </span>
@@ -655,7 +654,7 @@ export default function Page() {
                 disabled={atLimit}
               />
 
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between border-t border-[color:var(--gray-200)] pt-4">
                 <h2 className="text-xs font-bold uppercase tracking-widest text-muted">
                   Choose a scenario
                 </h2>
@@ -684,9 +683,25 @@ export default function Page() {
                     setError(null);
                   }}
                   disabled={atLimit}
-                  className="flex items-center justify-center gap-2 rounded-2xl border border-dashed border-border p-3.5 text-sm font-medium text-muted transition-all hover:border-accent/50 hover:text-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-50"
+                  className="group flex items-center justify-between gap-4 border-t border-[color:var(--gray-200)] pt-4 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  <Icon name="pencil" size={16} /> Describe your own
+                  <span>
+                    <span className="block font-display text-lg tracking-tight text-[color:var(--gray-900)]">
+                      Not listed? Describe your own
+                    </span>
+                    <span className="mt-0.5 block text-sm text-muted">
+                      Any situation, in one sentence.
+                    </span>
+                  </span>
+                  <span className="wipe inline-flex shrink-0 items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-[color:var(--gray-900)]">
+                    Write it
+                    <Icon
+                      name="arrowRight"
+                      size={13}
+                      strokeWidth={2}
+                      className="transition-transform duration-300 group-hover:translate-x-1"
+                    />
+                  </span>
                 </button>
               ) : (
                 <div className="animate-scale-in rounded-3xl border border-border bg-surface p-4 shadow-card">
@@ -742,10 +757,7 @@ export default function Page() {
           ) : (
             <section className="flex animate-fade-up flex-col gap-4">
               <Reveal>
-                <span className="rise">
-                  <span className="eyebrow">Pre-Mortem</span>
-                </span>
-                <h2 className="rise mt-2">
+                <h2 className="rise">
                   <span className="display text-3xl text-[color:var(--gray-900)] sm:text-4xl">
                     Pre-mortem a <span className="marker">decision</span>
                   </span>

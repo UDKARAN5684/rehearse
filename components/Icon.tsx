@@ -115,6 +115,7 @@ const PATHS: Record<string, ReactNode> = {
     </>
   ),
   arrowRight: <path d="M5 12h13M12.5 6l6 6-6 6" />,
+  chevronDown: <path d="M5 9l7 7 7-7" />,
   x: <path d="M6 6l12 12M18 6 6 18" />,
 };
 
