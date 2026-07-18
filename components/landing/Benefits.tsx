@@ -109,7 +109,7 @@ export default function Benefits() {
               variants={item}
               whileHover={{ y: -5 }}
               whileTap={{ scale: 0.98 }}
-              className="group relative rounded-3xl border border-border bg-surface p-5"
+              className="group relative rounded-3xl border border-border bg-surface shadow-soft p-5"
             >
               <span
                 className="pointer-events-none absolute right-4 top-4 h-2 w-2 rounded-full"
@@ -140,7 +140,7 @@ export default function Benefits() {
         >
           <a
             href="#start"
-            className="inline-flex items-center gap-2 rounded-full bg-accent text-accent-fg px-5 py-2.5 text-sm font-semibold"
+            className="inline-flex items-center gap-2 rounded-full bg-accent text-accent-fg shadow-btn px-5 py-2.5 text-sm font-semibold"
           >
             Start practicing <Icon name="arrowRight" size={15} />
           </a>

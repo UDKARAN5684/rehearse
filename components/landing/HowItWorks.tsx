@@ -103,7 +103,7 @@ export default function HowItWorks() {
               variants={item}
               whileHover={{ y: -5 }}
               whileTap={{ scale: 0.98 }}
-              className="group relative overflow-hidden rounded-3xl border border-border bg-surface p-6"
+              className="group relative overflow-hidden rounded-3xl border border-border bg-surface shadow-soft p-6"
             >
               {/* faint big number watermark */}
               <span
@@ -156,7 +156,7 @@ export default function HowItWorks() {
         >
           <a
             href="#start"
-            className="inline-flex items-center gap-2 rounded-full bg-accent text-accent-fg px-5 py-2.5 text-sm font-semibold transition-transform hover:-translate-y-0.5"
+            className="inline-flex items-center gap-2 rounded-full bg-accent text-accent-fg shadow-btn px-5 py-2.5 text-sm font-semibold transition-transform hover:-translate-y-0.5"
           >
             Start practicing <Icon name="arrowRight" size={15} />
           </a>

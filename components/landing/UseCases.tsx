@@ -126,7 +126,7 @@ export default function UseCases() {
               variants={item}
               whileHover={{ y: -5 }}
               whileTap={{ scale: 0.98 }}
-              className="group relative flex flex-col rounded-3xl border border-border bg-surface p-6"
+              className="group relative flex flex-col rounded-3xl border border-border bg-surface shadow-soft p-6"
             >
               {/* colored icon chip */}
               <div className="flex items-center justify-between">
@@ -178,7 +178,7 @@ export default function UseCases() {
           </p>
           <a
             href="#start"
-            className="inline-flex items-center gap-2 rounded-full bg-accent text-accent-fg px-5 py-2.5 text-sm font-semibold"
+            className="inline-flex items-center gap-2 rounded-full bg-accent text-accent-fg shadow-btn px-5 py-2.5 text-sm font-semibold"
           >
             Start practicing <Icon name="arrowRight" size={15} />
           </a>

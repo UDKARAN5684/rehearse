@@ -88,7 +88,7 @@ export default function MemoryFeature() {
           <div className="mt-8">
             <a
               href="#start"
-              className="inline-flex items-center gap-2 rounded-full bg-accent text-accent-fg px-5 py-2.5 text-sm font-semibold"
+              className="inline-flex items-center gap-2 rounded-full bg-accent text-accent-fg shadow-btn px-5 py-2.5 text-sm font-semibold"
             >
               Start practicing <Icon name="arrowRight" size={15} />
             </a>
@@ -120,7 +120,7 @@ export default function MemoryFeature() {
           />
 
           {/* person card */}
-          <div className="relative rounded-3xl border border-border bg-surface p-6">
+          <div className="relative rounded-3xl border border-border bg-surface shadow-soft p-6">
             <div className="flex items-center gap-4">
               <motion.div
                 className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full text-xl font-extrabold text-white"
