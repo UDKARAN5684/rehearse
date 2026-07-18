@@ -46,7 +46,7 @@ export default function Composer({
   const canSend = text.trim().length > 0 && !disabled;
 
   return (
-    <div className="flex items-end gap-2 rounded-3xl border border-border bg-surface p-2 shadow-card transition-all focus-within:border-accent/60 focus-within:shadow-glow-sm">
+    <div className="flex items-end gap-2 rounded-2xl border border-[color:var(--gray-300)] bg-white p-2 transition-colors focus-within:border-[color:var(--gray-900)]">
       <label htmlFor="composer-input" className="sr-only">
         Your message
       </label>
@@ -66,7 +66,7 @@ export default function Composer({
         onClick={submit}
         disabled={!canSend}
         aria-label="Send message"
-        className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full bg-accent text-accent-fg shadow-glow-sm px-4 text-sm font-semibold transition-all hover:opacity-90 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-40"
+        className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full bg-[color:var(--gray-900)] text-white px-4 text-sm font-semibold transition-colors hover:bg-[color:var(--gray-700)] active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-40"
       >
         <span>Send</span>
         <Icon name="arrowRight" size={15} strokeWidth={2.25} />
