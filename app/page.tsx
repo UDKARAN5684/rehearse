@@ -581,7 +581,7 @@ export default function Page() {
         <>
           {/* Editorial hero — quiet tagline, then a massive bottom-anchored
               display title that rises from behind an overflow mask. */}
-          <section className="edge flex min-h-[78vh] flex-col justify-between pb-2 pt-14 sm:min-h-[86vh]">
+          <section className="edge flex flex-col gap-8 pb-8 pt-12 sm:gap-10">
             <Reveal className="grid-12">
               <p className="rise col-span-12 sm:col-span-5">
                 <span className="text-[15px] leading-relaxed text-[color:var(--gray-700)] sm:text-base">
@@ -621,7 +621,7 @@ export default function Page() {
 
           <div
             id="start"
-            className="mx-auto flex w-full max-w-2xl scroll-mt-24 flex-col gap-6 px-4 py-16"
+            className="mx-auto w-full max-w-6xl scroll-mt-24 px-6 py-14"
           >
           <ModeTabs
             mode={mode}
@@ -633,34 +633,57 @@ export default function Page() {
           />
 
           {mode === "conversation" ? (
-            <section className="flex flex-col gap-4">
-              <Reveal>
-                <h2 className="rise">
-                  <span className="display text-3xl text-[color:var(--gray-900)] sm:text-4xl">
-                    Practice the <span className="marker">hard talk</span>
-                  </span>
-                </h2>
-                <p className="rise mt-3">
-                  <span className="max-w-sm text-[15px] text-muted">
-                    An AI plays the other person — and pushes back.
-                  </span>
-                </p>
-              </Reveal>
+            <div className="mt-8 grid gap-x-12 gap-y-8 lg:grid-cols-[minmax(0,380px)_minmax(0,1fr)]">
+              <div className="flex flex-col gap-6 lg:sticky lg:top-24 lg:self-start">
+                <Reveal>
+                  <h2 className="rise">
+                    <span className="display text-3xl text-[color:var(--gray-900)] sm:text-4xl">
+                      Practice the <span className="marker">hard talk</span>
+                    </span>
+                  </h2>
+                  <p className="rise mt-3">
+                    <span className="text-[15px] text-muted">
+                      An AI plays the other person — and pushes back.
+                    </span>
+                  </p>
+                </Reveal>
 
-              <PersonSelect
-                people={people}
-                selectedId={selectedPersonId}
-                onSelect={setSelectedPersonId}
-                onManage={() => setView("people")}
-                disabled={atLimit}
-              />
+                <PersonSelect
+                  people={people}
+                  selectedId={selectedPersonId}
+                  onSelect={setSelectedPersonId}
+                  onManage={() => setView("people")}
+                  disabled={atLimit}
+                />
 
-              <div className="flex items-center justify-between border-t border-[color:var(--gray-200)] pt-4">
-                <h2 className="text-xs font-bold uppercase tracking-widest text-muted">
-                  Choose a scenario
-                </h2>
-                <UsageBadge used={used} limit={FREE_DAILY_LIMIT} />
+                <ul className="hidden flex-col gap-3 border-t border-[color:var(--gray-200)] pt-5 lg:flex">
+                  {[
+                    "100% private — stored only in your browser",
+                    "Runs on open models, no account needed",
+                    "Three free rehearsals every day",
+                  ].map((t) => (
+                    <li
+                      key={t}
+                      className="flex items-start gap-2.5 text-sm text-[color:var(--gray-700)]"
+                    >
+                      <Icon
+                        name="check"
+                        size={16}
+                        className="mt-0.5 shrink-0 text-[color:var(--gray-900)]"
+                      />
+                      {t}
+                    </li>
+                  ))}
+                </ul>
               </div>
+
+              <div className="flex min-w-0 flex-col gap-4">
+                <div className="flex items-center justify-between border-t border-[color:var(--gray-200)] pt-4 lg:border-t-0 lg:pt-0">
+                  <h2 className="text-xs font-bold uppercase tracking-widest text-muted">
+                    Choose a scenario
+                  </h2>
+                  <UsageBadge used={used} limit={FREE_DAILY_LIMIT} />
+                </div>
 
               {atLimit && <LimitCallout used={used} />}
 
@@ -754,31 +777,35 @@ export default function Page() {
                   </div>
                 </div>
               )}
-            </section>
-          ) : (
-            <section className="flex animate-fade-up flex-col gap-4">
-              <Reveal>
-                <h2 className="rise">
-                  <span className="display text-3xl text-[color:var(--gray-900)] sm:text-4xl">
-                    Pre-mortem a <span className="marker">decision</span>
-                  </span>
-                </h2>
-                <p className="rise mt-3">
-                  <span className="max-w-sm text-[15px] text-muted">
-                    Imagine it already failed. Find out why — before you commit.
-                  </span>
-                </p>
-              </Reveal>
-
-              <div className="flex items-center justify-between border-t border-[color:var(--gray-200)] pt-4">
-                <label
-                  htmlFor="decision-input"
-                  className="text-xs font-bold uppercase tracking-widest text-muted"
-                >
-                  Your decision
-                </label>
-                <UsageBadge used={used} limit={FREE_DAILY_LIMIT} />
               </div>
+            </div>
+          ) : (
+            <div className="mt-8 grid animate-fade-up gap-x-12 gap-y-8 lg:grid-cols-[minmax(0,380px)_minmax(0,1fr)]">
+              <div className="flex flex-col gap-4 lg:sticky lg:top-24 lg:self-start">
+                <Reveal>
+                  <h2 className="rise">
+                    <span className="display text-3xl text-[color:var(--gray-900)] sm:text-4xl">
+                      Pre-mortem a <span className="marker">decision</span>
+                    </span>
+                  </h2>
+                  <p className="rise mt-3">
+                    <span className="text-[15px] text-muted">
+                      Imagine it already failed. Find out why — before you commit.
+                    </span>
+                  </p>
+                </Reveal>
+              </div>
+
+              <div className="flex min-w-0 flex-col gap-4">
+                <div className="flex items-center justify-between border-t border-[color:var(--gray-200)] pt-4 lg:border-t-0 lg:pt-0">
+                  <label
+                    htmlFor="decision-input"
+                    className="text-xs font-bold uppercase tracking-widest text-muted"
+                  >
+                    Your decision
+                  </label>
+                  <UsageBadge used={used} limit={FREE_DAILY_LIMIT} />
+                </div>
 
               {atLimit && <LimitCallout used={used} />}
 
@@ -787,7 +814,7 @@ export default function Page() {
                 value={decision}
                 onChange={(e) => setDecision(e.target.value)}
                 disabled={atLimit}
-                rows={3}
+                rows={5}
                 placeholder="e.g. Leave my stable job to start a company with a friend"
                 className="w-full resize-none rounded-xl border border-[color:var(--gray-300)] bg-white px-4 py-3 text-[15px] text-fg outline-none transition-colors placeholder:text-[color:var(--gray-400)] focus:border-[color:var(--gray-900)] disabled:opacity-50"
               />
@@ -811,7 +838,8 @@ export default function Page() {
                   <Icon name="arrowRight" size={15} strokeWidth={2} />
                 </button>
               </div>
-            </section>
+              </div>
+            </div>
           )}
 
           <RecentSessions

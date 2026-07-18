@@ -25,7 +25,7 @@ export default function PersonSelect({
 
   return (
     <div className="flex flex-col gap-4 border-t border-[color:var(--gray-200)] pt-4">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
         <label
           htmlFor="person-select"
           className="text-xs font-bold uppercase tracking-widest text-muted"
