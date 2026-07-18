@@ -128,7 +128,7 @@ export default function TwoModes() {
               variants={item}
               whileHover={{ y: -6 }}
               whileTap={{ scale: 0.985 }}
-              className="group relative overflow-hidden rounded-3xl border border-border bg-surface p-6 shadow-card sm:p-7"
+              className="group relative overflow-hidden rounded-3xl border border-border bg-surface p-6 sm:p-7"
             >
               {/* colored background wash */}
               <div
@@ -216,7 +216,7 @@ export default function TwoModes() {
                 <div className="mt-7">
                   <a
                     href="#start"
-                    className="inline-flex items-center gap-1.5 rounded-full bg-accent text-accent-fg shadow-glow-sm px-5 py-2.5 text-sm font-semibold transition-transform group-hover:translate-x-0.5"
+                    className="inline-flex items-center gap-1.5 rounded-full bg-accent text-accent-fg px-5 py-2.5 text-sm font-semibold transition-transform group-hover:translate-x-0.5"
                   >
                     {mode.cta}
                     <Icon name="arrowRight" size={15} />

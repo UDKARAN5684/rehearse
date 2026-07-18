@@ -34,7 +34,7 @@ export default function FinalCta() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-80px" }}
           transition={{ type: "spring", stiffness: 180, damping: 22 }}
-          className="ink relative overflow-hidden rounded-[2rem] px-6 py-16 text-center shadow-card sm:px-12 sm:py-20"
+          className="ink relative overflow-hidden rounded-[2rem] px-6 py-16 text-center sm:px-12 sm:py-20"
         >
           {/* Ambient floating decorative shapes */}
           <motion.div
@@ -111,8 +111,8 @@ export default function FinalCta() {
                 href="#start"
                 whileHover={{ y: -4, scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
-                className="inline-flex items-center gap-2 rounded-full px-8 py-4 text-base font-semibold shadow-card"
-                style={{ backgroundColor: "#0d0d0d", color: "#FFFFFF" }}
+                className="inline-flex items-center gap-2 rounded-full px-8 py-4 text-base font-semibold"
+                style={{ backgroundColor: "#FFFFFF", color: "#0d0d0d" }}
               >
                 Start a rehearsal
                 <Icon name="arrowRight" size={18} />

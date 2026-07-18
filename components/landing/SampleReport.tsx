@@ -130,7 +130,7 @@ export default function SampleReport() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-60px" }}
           transition={{ type: "spring", stiffness: 190, damping: 24 }}
-          className="relative mt-10 overflow-hidden rounded-3xl border border-border bg-surface p-6 shadow-card sm:p-8"
+          className="relative mt-10 overflow-hidden rounded-3xl border border-border bg-surface p-6 sm:p-8"
         >
           {/* ambient floating blobs */}
           <motion.div
@@ -279,7 +279,7 @@ export default function SampleReport() {
             </p>
             <a
               href="#start"
-              className="inline-flex items-center gap-2 rounded-full bg-accent text-accent-fg shadow-glow-sm px-5 py-2.5 text-sm font-semibold"
+              className="inline-flex items-center gap-2 rounded-full bg-accent text-accent-fg px-5 py-2.5 text-sm font-semibold"
             >
               Start practicing <Icon name="arrowRight" size={15} />
             </a>

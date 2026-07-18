@@ -121,7 +121,7 @@ export default function Faq() {
               <motion.div
                 key={faq.q}
                 variants={item}
-                className="overflow-hidden rounded-3xl border border-border bg-surface shadow-card"
+                className="overflow-hidden rounded-3xl border border-border bg-surface"
                 style={
                   isOpen
                     ? { boxShadow: `0 0 0 1.5px ${faq.color}66` }
@@ -210,7 +210,7 @@ export default function Faq() {
           </div>
           <a
             href="#start"
-            className="inline-flex shrink-0 items-center gap-2 rounded-full bg-accent text-accent-fg shadow-glow-sm px-5 py-2.5 text-sm font-semibold"
+            className="inline-flex shrink-0 items-center gap-2 rounded-full bg-accent text-accent-fg px-5 py-2.5 text-sm font-semibold"
           >
             Start practicing <Icon name="arrowRight" size={15} />
           </a>

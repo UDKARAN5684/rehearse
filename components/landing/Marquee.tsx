@@ -43,7 +43,7 @@ function Track({ ariaHidden }: { ariaHidden?: boolean }) {
       {PILLS.map((pill, i) => (
         <div
           key={`${pill.label}-${i}`}
-          className="flex shrink-0 items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold shadow-card sm:px-5 sm:py-2.5"
+          className="flex shrink-0 items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold sm:px-5 sm:py-2.5"
           style={{
             backgroundColor: `${pill.color}14`,
             borderColor: `${pill.color}40`,
