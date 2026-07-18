@@ -4,21 +4,16 @@ import { useEffect, useState } from "react";
 import type { Report } from "@/lib/types";
 import Icon from "@/components/Icon";
 
-function scoreTheme(score: number): { stroke: string; text: string; label: string } {
-  if (score >= 75)
-    return {
-      stroke: "#10b981",
-      text: "text-emerald-500",
-      label: "Strong showing",
-    };
-  if (score >= 50)
-    return { stroke: "#f59e0b", text: "text-amber-500", label: "Getting there" };
-  return { stroke: "#f43f5e", text: "text-rose-500", label: "Room to grow" };
+// Score still carries a small semantic accent (the one place colour is allowed,
+// like the difficulty dots) — but the ring itself stays editorial monochrome.
+function scoreTheme(score: number): { dot: string; label: string } {
+  if (score >= 75) return { dot: "bg-emerald-500", label: "Strong session" };
+  if (score >= 50) return { dot: "bg-amber-500", label: "Getting there" };
+  return { dot: "bg-rose-500", label: "Room to grow" };
 }
 
 function ScoreRing({ score }: { score: number }) {
   const clamped = Math.max(0, Math.min(100, Math.round(score)));
-  const theme = scoreTheme(clamped);
   const radius = 54;
   const circ = 2 * Math.PI * radius;
 
@@ -53,16 +48,16 @@ function ScoreRing({ score }: { score: number }) {
           cy="64"
           r={radius}
           fill="none"
-          strokeWidth="9"
-          className="stroke-border"
+          strokeWidth="7"
+          stroke="var(--gray-200)"
         />
         <circle
           cx="64"
           cy="64"
           r={radius}
           fill="none"
-          strokeWidth="9"
-          stroke={theme.stroke}
+          strokeWidth="7"
+          stroke="var(--gray-900)"
           strokeLinecap="round"
           strokeDasharray={circ}
           strokeDashoffset={offset}
@@ -70,12 +65,12 @@ function ScoreRing({ score }: { score: number }) {
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span
-          className={`font-display text-4xl font-bold tabular-nums ${theme.text}`}
-        >
+        <span className="font-display text-4xl font-bold tabular-nums text-[color:var(--gray-900)]">
           {num}
         </span>
-        <span className="text-[11px] font-medium text-muted">/ 100</span>
+        <span className="text-[10px] font-bold uppercase tracking-widest text-muted">
+          / 100
+        </span>
       </div>
     </div>
   );
@@ -93,48 +88,42 @@ export default function ReportCard({
   const hurtYou = Array.isArray(report.hurtYou) ? report.hurtYou : [];
   const missedMoves = Array.isArray(report.missedMoves) ? report.missedMoves : [];
 
-  const card =
-    "rounded-4xl border border-border bg-surface p-6 shadow-card";
-
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-4">
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-8">
       {/* Score + headline */}
-      <div
-        className="animate-fade-up rounded-4xl border border-border bg-surface p-6 shadow-card"
-        style={{ animationDelay: "0ms" }}
-      >
-        <div className="flex flex-col items-center gap-5 text-center sm:flex-row sm:text-left">
-          <ScoreRing score={report.overallScore} />
-          <div className="flex-1">
-            <p
-              className={`text-xs font-bold uppercase tracking-widest ${theme.text}`}
-            >
-              {theme.label}
-            </p>
-            <h2 className="mt-1.5 font-display text-2xl font-bold leading-tight text-fg">
-              {report.headline}
-            </h2>
-            <p className="mt-2 text-sm text-muted">Your post-game report</p>
-          </div>
+      <div className="flex animate-fade-up flex-col items-center gap-6 border-b border-[color:var(--gray-200)] pb-8 text-center sm:flex-row sm:items-center sm:gap-8 sm:text-left">
+        <ScoreRing score={report.overallScore} />
+        <div className="flex-1">
+          <p className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[color:var(--gray-500)]">
+            <span
+              className={`h-1.5 w-1.5 rounded-full ${theme.dot}`}
+              aria-hidden
+            />
+            {theme.label}
+          </p>
+          <h2 className="mt-2 font-display text-2xl font-bold leading-tight tracking-tight text-[color:var(--gray-900)] sm:text-3xl">
+            {report.headline}
+          </h2>
+          <p className="mt-2 text-sm text-muted">Your rehearsal report</p>
         </div>
       </div>
 
       {/* What worked */}
       {wentWell.length > 0 && (
-        <section
-          className={`animate-fade-up ${card}`}
-          style={{ animationDelay: "80ms" }}
-        >
-          <h3 className="flex items-center gap-2 text-sm font-semibold text-fg">
-            <Icon name="check" size={17} className="text-emerald-500" /> What
-            worked
+        <section>
+          <h3 className="text-xs font-bold uppercase tracking-widest text-[color:var(--gray-500)]">
+            What worked
           </h3>
-          <ul className="mt-3 space-y-2">
+          <ul className="mt-4 space-y-3">
             {wentWell.map((item, i) => (
-              <li key={i} className="flex gap-2.5 text-sm text-fg/85">
-                <span aria-hidden="true" className="mt-0.5 text-emerald-500">
-                  ●
-                </span>
+              <li
+                key={i}
+                className="flex gap-3 text-[15px] leading-relaxed text-[color:var(--gray-700)]"
+              >
+                <span
+                  aria-hidden="true"
+                  className="mt-[0.55rem] h-1 w-1 shrink-0 rounded-full bg-[color:var(--gray-900)]"
+                />
                 <span>{item}</span>
               </li>
             ))}
@@ -144,29 +133,27 @@ export default function ReportCard({
 
       {/* What hurt you */}
       {hurtYou.length > 0 && (
-        <section
-          className={`animate-fade-up ${card}`}
-          style={{ animationDelay: "160ms" }}
-        >
-          <h3 className="flex items-center gap-2 text-sm font-semibold text-fg">
-            <Icon name="search" size={17} className="text-accent" /> What hurt
-            you
+        <section className="border-t border-[color:var(--gray-200)] pt-8">
+          <h3 className="text-xs font-bold uppercase tracking-widest text-[color:var(--gray-500)]">
+            What hurt you
           </h3>
           <div className="mt-4 space-y-4">
             {hurtYou.map((h, i) => (
               <div
                 key={i}
-                className="rounded-3xl border border-border bg-surface-2 p-4"
+                className="rounded-2xl border border-[color:var(--gray-200)] bg-white p-4"
               >
-                <blockquote className="border-l-2 border-rose-400 pl-3 text-sm italic text-fg/80">
-                  “{h.quote}”
+                <blockquote className="border-l-2 border-[color:var(--gray-900)] pl-3 font-display text-[15px] italic text-[color:var(--gray-700)]">
+                  &ldquo;{h.quote}&rdquo;
                 </blockquote>
                 <p className="mt-2.5 text-sm text-muted">{h.why}</p>
-                <div className="mt-3 rounded-2xl bg-accent-soft px-3.5 py-2.5 text-sm text-fg ring-1 ring-inset ring-accent/20">
-                  <span className="font-semibold text-accent">
-                    Try instead:{" "}
+                <div className="mt-3 border-t border-[color:var(--gray-200)] pt-3">
+                  <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-[color:var(--gray-500)]">
+                    Try instead
                   </span>
-                  {h.tryInstead}
+                  <p className="mt-1 font-display text-[15px] leading-snug text-[color:var(--gray-900)]">
+                    &ldquo;{h.tryInstead}&rdquo;
+                  </p>
                 </div>
               </div>
             ))}
@@ -176,20 +163,22 @@ export default function ReportCard({
 
       {/* Missed moves */}
       {missedMoves.length > 0 && (
-        <section
-          className={`animate-fade-up ${card}`}
-          style={{ animationDelay: "240ms" }}
-        >
-          <h3 className="flex items-center gap-2 text-sm font-semibold text-fg">
-            <Icon name="crosshair" size={17} className="text-muted" /> Missed
-            moves
+        <section className="border-t border-[color:var(--gray-200)] pt-8">
+          <h3 className="text-xs font-bold uppercase tracking-widest text-[color:var(--gray-500)]">
+            Missed moves
           </h3>
-          <ul className="mt-3 space-y-2">
+          <ul className="mt-4 space-y-3">
             {missedMoves.map((item, i) => (
-              <li key={i} className="flex gap-2.5 text-sm text-fg/85">
-                <span aria-hidden="true" className="mt-0.5 text-muted">
-                  →
-                </span>
+              <li
+                key={i}
+                className="flex gap-3 text-[15px] leading-relaxed text-[color:var(--gray-700)]"
+              >
+                <Icon
+                  name="arrowRight"
+                  size={15}
+                  strokeWidth={2}
+                  className="mt-1 shrink-0 text-[color:var(--gray-400)]"
+                />
                 <span>{item}</span>
               </li>
             ))}
@@ -197,12 +186,9 @@ export default function ReportCard({
         </section>
       )}
 
-      {/* One thing next time — standout gradient call-out */}
-      <section
-        className="animate-fade-up overflow-hidden rounded-4xl bg-accent p-6 text-accent-fg shadow-glow"
-        style={{ animationDelay: "320ms" }}
-      >
-        <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-accent-fg/75">
+      {/* One thing next time — ink callout */}
+      <section className="ink rounded-2xl p-6">
+        <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-white/60">
           <Icon name="spark" size={15} /> One thing next time
         </p>
         <p className="mt-2 font-display text-xl font-bold leading-snug">
@@ -213,9 +199,9 @@ export default function ReportCard({
       <button
         type="button"
         onClick={onRestart}
-        className="mx-auto mt-1 inline-flex items-center gap-2 rounded-2xl border border-border bg-surface px-5 py-2.5 text-sm font-semibold text-fg transition-all hover:shadow-glow-sm active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        className="mx-auto inline-flex items-center gap-2 rounded-full border border-[color:var(--gray-300)] bg-white px-5 py-2.5 text-sm font-semibold text-[color:var(--gray-900)] transition-colors hover:border-[color:var(--gray-900)] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
       >
-Rehearse again <Icon name="arrowRight" size={15} strokeWidth={2.25} />
+        Rehearse again <Icon name="arrowRight" size={15} strokeWidth={2.25} />
       </button>
     </div>
   );
