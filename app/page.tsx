@@ -59,16 +59,16 @@ type View = "home" | "chat" | "report" | "people";
 const PREMORTEM_PERSONA = "Interviewer";
 
 const PRIMARY_BTN =
-  "inline-flex items-center justify-center gap-1.5 rounded-full bg-accent text-accent-fg shadow-glow-sm px-5 py-2.5 text-sm font-semibold transition-all hover:opacity-90 active:scale-[0.97] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-50";
+  "inline-flex items-center justify-center gap-1.5 rounded-full bg-[color:var(--gray-900)] text-white px-5 py-2.5 text-sm font-semibold tracking-tight transition-all hover:bg-[color:var(--gray-700)] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--white)] disabled:cursor-not-allowed disabled:opacity-50";
 
 const GHOST_BTN =
   "rounded-full px-3.5 py-1.5 text-sm font-medium text-muted transition-colors hover:bg-surface-2 hover:text-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent";
 
 const SECONDARY_BTN =
-  "inline-flex items-center justify-center gap-1.5 rounded-full border border-border bg-surface px-5 py-2.5 text-sm font-semibold text-fg transition-all hover:border-fg/30 active:scale-[0.97] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-50";
+  "inline-flex items-center justify-center gap-1.5 rounded-full border border-[color:var(--gray-300)] bg-white px-5 py-2.5 text-sm font-semibold text-fg transition-colors hover:border-[color:var(--gray-900)] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-50";
 
 const FIELD_CLASS =
-  "w-full rounded-2xl border border-border bg-surface-2 px-3.5 py-2.5 text-sm text-fg outline-none transition-all placeholder:text-muted/70 focus:border-accent/60 focus:ring-2 focus:ring-accent/20 disabled:opacity-50";
+  "w-full rounded-xl border border-[color:var(--gray-300)] bg-white px-3.5 py-2.5 text-sm text-fg outline-none transition-colors placeholder:text-[color:var(--gray-400)] focus:border-[color:var(--gray-900)] disabled:opacity-50";
 
 /** POST JSON and surface a useful error message on any non-2xx / bad body. */
 async function postJson<T>(url: string, body: unknown): Promise<T> {
@@ -769,22 +769,26 @@ export default function Page() {
                 </p>
               </Reveal>
 
-              <div className="flex items-center justify-between">
-                <h2 className="text-xs font-bold uppercase tracking-widest text-muted">
+              <div className="flex items-center justify-between border-t border-[color:var(--gray-200)] pt-4">
+                <label
+                  htmlFor="decision-input"
+                  className="text-xs font-bold uppercase tracking-widest text-muted"
+                >
                   Your decision
-                </h2>
+                </label>
                 <UsageBadge used={used} limit={FREE_DAILY_LIMIT} />
               </div>
 
               {atLimit && <LimitCallout used={used} />}
 
               <textarea
+                id="decision-input"
                 value={decision}
                 onChange={(e) => setDecision(e.target.value)}
                 disabled={atLimit}
                 rows={3}
                 placeholder="e.g. Leave my stable job to start a company with a friend"
-                className="w-full resize-none rounded-2xl border border-border bg-surface px-4 py-3 text-[15px] text-fg outline-none transition-all placeholder:text-muted/60 focus:border-accent/60 focus:shadow-glow-sm disabled:opacity-50"
+                className="w-full resize-none rounded-xl border border-[color:var(--gray-300)] bg-white px-4 py-3 text-[15px] text-fg outline-none transition-colors placeholder:text-[color:var(--gray-400)] focus:border-[color:var(--gray-900)] disabled:opacity-50"
               />
 
               {error && (
@@ -793,13 +797,17 @@ export default function Page() {
                 </p>
               )}
 
-              <div className="flex items-center justify-end">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <span className="text-sm text-muted">
+                  Name the decision you can&apos;t unmake.
+                </span>
                 <button
                   onClick={startPremortem}
                   disabled={atLimit || !decision.trim() || busy}
                   className={PRIMARY_BTN}
                 >
-                  {awaitingReply ? "Starting…" : "Start the pre-mortem →"}
+                  {awaitingReply ? "Starting…" : "Start the pre-mortem"}
+                  <Icon name="arrowRight" size={15} strokeWidth={2} />
                 </button>
               </div>
             </section>
@@ -829,41 +837,49 @@ export default function Page() {
       {view === "chat" && session && (
         <div className="mx-auto flex min-h-0 w-full max-w-2xl flex-1 flex-col px-4 py-4">
           {session.mode === "conversation" && scenario ? (
-            <div className="mb-3 animate-fade-up rounded-3xl border border-border bg-surface p-3.5 shadow-card">
+            <div className="mb-4 animate-fade-up border-b border-[color:var(--gray-200)] pb-4">
               <div className="flex items-center gap-3">
-                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-accent-soft text-accent">
-                  <Icon name={categoryIcon(scenario.category)} size={18} />
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-[color:var(--gray-200)] text-[color:var(--gray-900)]">
+                  <Icon name={categoryIcon(scenario.category)} size={17} />
                 </span>
                 <div className="min-w-0">
-                  <div className="truncate text-sm font-semibold text-fg">
+                  <div className="truncate font-display text-base tracking-tight text-[color:var(--gray-900)]">
                     {scenario.title}
                   </div>
                   <div className="truncate text-xs text-muted">
                     {personaName} · {personaRoleLabel}
                     {activePerson && (
-                      <span className="ml-1 font-semibold text-accent">
+                      <span className="ml-1 font-semibold text-[color:var(--gray-900)]">
                         · from memory
                       </span>
                     )}
                   </div>
                 </div>
               </div>
-              <div className="mt-2 text-xs text-muted">
-                <span className="font-semibold text-fg">Your goal:</span>{" "}
-                {scenario.userGoal}
+              <div className="mt-2.5 text-xs leading-relaxed">
+                <span className="font-bold uppercase tracking-[0.12em] text-[color:var(--gray-500)]">
+                  Your goal
+                </span>{" "}
+                <span className="text-[color:var(--gray-700)]">
+                  {scenario.userGoal}
+                </span>
               </div>
             </div>
           ) : (
-            <div className="mb-3 animate-fade-up rounded-3xl border border-border bg-surface p-3.5 shadow-card">
-              <div className="flex items-center gap-2 text-sm font-semibold text-fg">
-                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-accent-soft text-accent">
-                  <Icon name="target" size={18} />
+            <div className="mb-4 animate-fade-up border-b border-[color:var(--gray-200)] pb-4">
+              <div className="flex items-center gap-3">
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-[color:var(--gray-200)] text-[color:var(--gray-900)]">
+                  <Icon name="target" size={17} />
                 </span>
-                Pre-mortem
+                <div className="min-w-0">
+                  <div className="font-display text-base tracking-tight text-[color:var(--gray-900)]">
+                    Pre-mortem
+                  </div>
+                  <p className="line-clamp-2 text-xs text-muted">
+                    {session.decision}
+                  </p>
+                </div>
               </div>
-              <p className="mt-1 line-clamp-2 text-xs text-muted">
-                {session.decision}
-              </p>
             </div>
           )}
 
@@ -1055,17 +1071,17 @@ function RecentSessions({
           return (
             <li
               key={s.id}
-              className="flex items-center gap-2 rounded-2xl border border-border bg-surface p-3 shadow-card transition-all hover:-translate-y-0.5 hover:shadow-glow-sm"
+              className="flex items-center gap-2 rounded-2xl border border-[color:var(--gray-200)] bg-white p-3 transition-colors hover:border-[color:var(--gray-400)]"
             >
               <button
                 onClick={() => onOpen(s.id)}
                 className="flex min-w-0 flex-1 items-center gap-3 rounded-lg text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               >
-                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-surface-2 text-muted">
-                  <Icon name={iconName} size={17} />
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-[color:var(--gray-200)] text-[color:var(--gray-600)]">
+                  <Icon name={iconName} size={16} />
                 </span>
                 <span className="min-w-0">
-                  <span className="block truncate text-sm font-semibold text-fg">
+                  <span className="block truncate text-sm font-semibold text-[color:var(--gray-900)]">
                     {title}
                   </span>
                   {subtitle && (
@@ -1076,7 +1092,7 @@ function RecentSessions({
                 </span>
               </button>
               {badge && (
-                <span className="shrink-0 rounded-full bg-surface-2 px-2.5 py-0.5 text-xs font-semibold capitalize text-muted">
+                <span className="shrink-0 rounded-full border border-[color:var(--gray-200)] px-2.5 py-0.5 text-xs font-semibold capitalize text-muted">
                   {badge}
                 </span>
               )}
@@ -1204,38 +1220,37 @@ function RememberPanel({
 }) {
   const isLoading = loading || (notes === null && !error);
   return (
-    <div className="animate-scale-in rounded-3xl border border-accent/25 bg-accent-soft p-5">
-      <div className="flex items-center gap-2 text-sm font-semibold text-accent">
-        <Icon name="spark" size={16} /> Remembering {name}
+    <div className="animate-scale-in rounded-2xl border border-[color:var(--gray-200)] bg-[color:var(--gray-50)] p-5">
+      <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[color:var(--gray-500)]">
+        <Icon name="spark" size={14} /> Remembering {name}
       </div>
       {isLoading ? (
-        <div className="mt-2 flex items-center gap-2 text-sm text-fg/80">
-          <span className="h-4 w-4 animate-spin rounded-full border-2 border-accent/30 border-t-accent" />
+        <div className="mt-2.5 flex items-center gap-2 text-sm text-[color:var(--gray-700)]">
+          <span className="h-4 w-4 animate-spin rounded-full border-2 border-[color:var(--gray-300)] border-t-[color:var(--gray-900)]" />
           Saving what the AI just learned about {name}…
         </div>
       ) : error ? (
         <>
-          <p className="mt-1 text-sm font-medium text-rose-500">{error}</p>
-          <button
-            onClick={onRemember}
-            className="mt-3 inline-flex items-center justify-center rounded-full bg-accent text-accent-fg shadow-glow-sm px-5 py-2.5 text-sm font-semibold transition-all hover:opacity-90 active:scale-[0.97] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-          >
+          <p className="mt-1.5 text-sm font-medium text-rose-500">{error}</p>
+          <button onClick={onRemember} className={`${PRIMARY_BTN} mt-3`}>
             Try again
           </button>
         </>
       ) : notes && notes.length === 0 ? (
-        <p className="mt-1 text-sm text-fg/80">
+        <p className="mt-1.5 text-sm text-[color:var(--gray-700)]">
           Nothing new to add about {name} this time — their profile is already
           up to date.
         </p>
       ) : (
-        <div className="mt-1">
-          <p className="text-sm text-fg/80">Added to {name}&apos;s profile:</p>
+        <div className="mt-2">
+          <p className="text-sm text-[color:var(--gray-700)]">
+            Added to {name}&apos;s profile:
+          </p>
           <ul className="mt-2 flex flex-col gap-1.5">
             {(notes ?? []).map((n, i) => (
               <li
                 key={i}
-                className="rounded-xl bg-surface/70 px-3 py-1.5 text-sm text-fg"
+                className="rounded-xl border border-[color:var(--gray-200)] bg-white px-3 py-1.5 text-sm text-[color:var(--gray-800)]"
               >
                 {n}
               </li>
