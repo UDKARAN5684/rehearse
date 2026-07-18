@@ -15,6 +15,8 @@ export default function SmoothScroll() {
     raf = requestAnimationFrame(loop);
 
     // Smooth-scroll in-page anchor links (#start, #contact, back-to-top).
+    // Compute an absolute target that clears the sticky header, so the section
+    // lands crisply at the top instead of undershooting behind the header.
     const onClick = (e: MouseEvent) => {
       const a = (e.target as HTMLElement)?.closest?.(
         'a[href^="#"]',
@@ -25,7 +27,16 @@ export default function SmoothScroll() {
       const target = document.querySelector(id);
       if (target) {
         e.preventDefault();
-        lenis.scrollTo(target as HTMLElement, { offset: -8 });
+        const header = document.querySelector("header");
+        const headerH = header
+          ? header.getBoundingClientRect().height
+          : 0;
+        const top =
+          (target as HTMLElement).getBoundingClientRect().top +
+          window.scrollY -
+          headerH -
+          16;
+        lenis.scrollTo(Math.max(0, top), { duration: 1 });
       }
     };
     document.addEventListener("click", onClick);
